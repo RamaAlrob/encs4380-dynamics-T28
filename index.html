@@ -1,1090 +1,389 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dynamic Characteristics Toolkit</title>
-
-<script src="https://cdn.plot.ly/plotly-3.0.1.min.js"></script>
-
-<style>
-:root {
-  --primary: #2563eb;
-  --dark: #172033;
-  --light: #f4f7fb;
-  --border: #dce3ee;
-  --green: #15803d;
-  --red: #b91c1c;
-}
-* { box-sizing: border-box; }
-body {
-  margin: 0;
-  font-family: Arial, Helvetica, sans-serif;
-  background: var(--light);
-  color: var(--dark);
-  line-height: 1.6;
-}
-header {
-  background: linear-gradient(120deg, #172554, #2563eb);
-  color: white;
-  padding: 32px 18px;
-  text-align: center;
-}
-header h1 { margin: 0 0 8px; }
-header p { margin: 0; }
-nav {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 8px;
-  background: white;
-  padding: 14px;
-  border-bottom: 1px solid var(--border);
-  position: sticky;
-  top: 0;
-  z-index: 10;
-}
-nav button {
-  background: white;
-  color: var(--primary);
-  border: 1px solid var(--primary);
-}
-nav button.active, nav button:hover {
-  background: var(--primary);
-  color: white;
-}
-main {
-  max-width: 1200px;
-  margin: 24px auto;
-  padding: 0 16px;
-}
-.module {
-  display: none;
-  background: white;
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 24px;
-  margin-bottom: 24px;
-  box-shadow: 0 4px 14px #1720330b;
-}
-.module.active { display: block; }
-h2 { margin-top: 0; }
-h3 { margin-top: 24px; }
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 16px;
-}
-.panel {
-  background: #f8fafc;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 16px;
-  min-width: 0;
-}
-.control { margin-bottom: 14px; }
-label {
-  display: block;
-  font-weight: bold;
-  margin-bottom: 5px;
-}
-input[type="range"] { width: 100%; }
-input[type="number"], select {
-  width: 100%;
-  padding: 9px;
-  border: 1px solid #b9c5d6;
-  border-radius: 7px;
-  background: white;
-}
-button {
-  border: 0;
-  border-radius: 7px;
-  padding: 10px 15px;
-  cursor: pointer;
-  font-weight: bold;
-  background: var(--primary);
-  color: white;
-}
-button.secondary {
-  background: #e7edf8;
-  color: #172554;
-}
-button:hover { opacity: .9; }
-.plot {
-  width: 100%;
-  min-height: 330px;
-}
-.metric {
-  background: white;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 12px;
-}
-.metric .value {
-  font-size: 1.3rem;
-  font-weight: bold;
-  color: var(--primary);
-  overflow-wrap: anywhere;
-}
-.muted { color: #596579; font-size: .94rem; }
-.result {
-  margin-top: 12px;
-  padding: 10px;
-  border-radius: 7px;
-  background: #eff6ff;
-}
-.good { color: var(--green); font-weight: bold; }
-.bad { color: var(--red); font-weight: bold; }
-.equation {
-  background: #eff6ff;
-  padding: 12px;
-  border-radius: 8px;
-  overflow-wrap: anywhere;
-}
-footer {
-  text-align: center;
-  padding: 24px;
-  color: #64748b;
-}
-hr { border: 0; border-top: 1px solid var(--border); margin: 24px 0; }
-@media (max-width: 600px) {
-  .module { padding: 15px; }
-  header { padding: 25px 14px; }
-  .plot { min-height: 280px; }
-}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Module 1 - First-order time response</title>
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 16px; }
+    h1 { font-size: 1.4rem; }
+    .control { margin: 12px 0; }
+    input[type=range] { width: 100%; }
+    select { font-size: 1rem; padding: 4px; }
+    table { border-collapse: collapse; width: 100%; margin-top: 12px; }
+    th, td { border: 1px solid #ccc; padding: 6px 8px; text-align: center; }
+    .pass { color: #0a7d2c; font-weight: bold; }
+    .fail { color: #c0392b; font-weight: bold; }
+    #predictBox { border: 2px solid #2d6cdf; border-radius: 8px; padding: 8px 14px; margin: 14px 0; background: #f3f7ff; }
+    #predictBox h3 { margin: 6px 0; }
+    label.opt { display: block; margin: 6px 0; }
+    button { font-size: 1rem; padding: 6px 12px; margin: 6px 6px 6px 0; }
+    #pFeedback { font-weight: bold; }
+  </style>
 </head>
-
 <body>
-<header>
-  <h1>Dynamic Characteristics Toolkit</h1>
-  <p>An Interactive Toolkit for Understanding Dynamic Systems</p>
-  <p class="muted" style="color:#dbeafe">
-    First-Order Systems · Frequency Response · Second-Order Systems · Sensor Challenge
-  </p>
-</header>
+  <h1>Module 1: First-order time response</h1>
+  <p id="eq"></p>
 
-<nav>
-  <button class="active" data-module="module1">Module 1: First Order</button>
-  <button data-module="module2">Module 2: Frequency Response</button>
-  <button data-module="module3">Module 3: Second Order</button>
-  <button data-module="module4">Module 4: Sensor Challenge</button>
-</nav>
-
-<main>
-
-<!-- MODULE 1 -->
-<section id="module1" class="module active">
-  <h2>Module 1: First-Order System</h2>
-  <p>
-    Explore the time response of a first-order system by changing its gain,
-    time constant, and input type.
-  </p>
-
-  <div class="equation">
-    <strong>Transfer function:</strong> G(s) = K / (τs + 1)
-    <br>
-    <strong>Step response:</strong> y(t) = KA(1 − e<sup>−t/τ</sup>)
-    <br>
-    <strong>Ramp response:</strong>
-    y(t) = KA[t − τ + τe<sup>−t/τ</sup>]
+  <div class="control">
+    <label for="inputType">Input: </label>
+    <select id="inputType">
+      <option value="step">Step</option>
+      <option value="ramp">Ramp</option>
+    </select>
   </div>
 
-  <div class="grid">
-    <div class="panel">
-      <h3>System Parameters</h3>
-
-      <div class="control">
-        <label for="m1K">Gain K: <span id="m1KVal">2.0</span></label>
-        <input id="m1K" type="range" min="0.1" max="5" step="0.1" value="2">
-      </div>
-
-      <div class="control">
-        <label for="m1Tau">Time Constant τ (s): <span id="m1TauVal">1.0</span></label>
-        <input id="m1Tau" type="range" min="0.1" max="5" step="0.1" value="1">
-      </div>
-
-      <div class="control">
-        <label for="m1A">Input Amplitude A</label>
-        <input id="m1A" type="number" min="0.1" max="10" step="0.1" value="1">
-      </div>
-
-      <div class="control">
-        <label for="m1Type">Input Type</label>
-        <select id="m1Type">
-          <option value="step">Step Input</option>
-          <option value="ramp">Ramp Input</option>
-        </select>
-      </div>
-
-      <button id="m1Update">Update Response</button>
-    </div>
-
-    <div class="panel">
-      <h3>Response Metrics</h3>
-      <div class="grid">
-        <div class="metric">
-          <div class="muted">Time Constant τ</div>
-          <div class="value" id="m1MetricTau">1.00 s</div>
-        </div>
-        <div class="metric">
-          <div class="muted">Time 3τ</div>
-          <div class="value" id="m1Metric3Tau">3.00 s</div>
-        </div>
-        <div class="metric">
-          <div class="muted">Final Step Value</div>
-          <div class="value" id="m1Final">2.00</div>
-        </div>
-        <div class="metric">
-          <div class="muted">Ramp Steady-State Lag</div>
-          <div class="value" id="m1Lag">2.00</div>
-        </div>
-      </div>
-      <p class="muted">
-        For a step input, the response reaches approximately 63.2% at τ
-        and 95.0% at 3τ. For a ramp input, the steady-state tracking error
-        is KAτ.
-      </p>
-    </div>
+  <div class="control">
+    <label for="tau">τ = <span id="tauVal">10</span> s</label>
+    <input type="range" id="tau" min="1" max="20" step="0.5" value="10">
   </div>
 
-  <h3>System Response</h3>
-  <div id="m1Response" class="plot"></div>
-
-  <h3>Logarithmic Error Plot</h3>
-  <p class="muted">
-    For a step input, e(t) = 1 − y(t)/KA = e<sup>−t/τ</sup>.
-    Therefore, ln(e) = −t/τ and the slope is −1/τ.
-  </p>
-  <div id="m1Error" class="plot"></div>
-
-  <hr>
-  <h3>Prediction and Validation</h3>
-  <p>Predict the percentage of the final step response reached at time τ.</p>
-
-  <div class="grid">
-    <div class="panel">
-      <label for="m1Prediction">Your prediction (%)</label>
-      <input id="m1Prediction" type="number" min="0" max="100" step="0.1" placeholder="For example, 63.2">
-      <button id="m1Check" style="margin-top:10px">Check Prediction</button>
-      <div id="m1PredictionResult" class="result" aria-live="polite">
-        Enter a prediction and check your answer.
-      </div>
-    </div>
-    <div class="panel">
-      <h3>Validation Checks</h3>
-      <p id="m1CheckTau"></p>
-      <p id="m1Check3Tau"></p>
-      <p id="m1CheckSlope"></p>
-    </div>
-  </div>
-</section>
-
-<!-- MODULE 2 -->
-<section id="module2" class="module">
-  <h2>Module 2: Frequency Response</h2>
-  <p>
-    Study how a first-order system changes the amplitude and phase of a
-    sinusoidal input at different frequencies.
-  </p>
-
-  <div class="equation">
-    <strong>Magnitude:</strong>
-    M(ω) = K / √(1 + (ωτ)²)
-    <br>
-    <strong>Phase:</strong>
-    φ(ω) = −tan<sup>−1</sup>(ωτ)
-    <br>
-    <strong>Cutoff frequency:</strong> ω<sub>c</sub> = 1/τ rad/s
+  <div class="control">
+    <label for="gain">K = <span id="gainVal">1</span></label>
+    <input type="range" id="gain" min="0.5" max="3" step="0.1" value="1">
   </div>
 
-  <div class="grid">
-    <div class="panel">
-      <h3>Parameters</h3>
-      <div class="control">
-        <label for="m2K">Gain K</label>
-        <input id="m2K" type="number" min="0.1" max="10" step="0.1" value="1">
-      </div>
-      <div class="control">
-        <label for="m2Tau">Time Constant τ (s)</label>
-        <input id="m2Tau" type="number" min="0.001" max="10" step="0.01" value="0.2">
-      </div>
-      <div class="control">
-        <label for="m2Omega">Input Angular Frequency ω (rad/s)</label>
-        <input id="m2Omega" type="number" min="0.01" max="1000" step="0.1" value="2">
-      </div>
-      <div class="control">
-        <label for="m2A">Input Amplitude A</label>
-        <input id="m2A" type="number" min="0.1" max="10" step="0.1" value="1">
-      </div>
-      <button id="m2Update">Calculate Frequency Response</button>
-    </div>
-
-    <div class="panel">
-      <h3>Calculated Results</h3>
-      <div class="grid">
-        <div class="metric">
-          <div class="muted">Magnitude Ratio M</div>
-          <div class="value" id="m2Magnitude">0.9285</div>
-        </div>
-        <div class="metric">
-          <div class="muted">Phase Lag</div>
-          <div class="value" id="m2Phase">21.80°</div>
-        </div>
-        <div class="metric">
-          <div class="muted">Output Amplitude</div>
-          <div class="value" id="m2OutputAmp">0.9285</div>
-        </div>
-        <div class="metric">
-          <div class="muted">Cutoff Frequency</div>
-          <div class="value" id="m2Cutoff">5.00 rad/s</div>
-        </div>
-        <div class="metric">
-          <div class="muted">Dynamic Error δ = M/K − 1</div>
-          <div class="value" id="m2Error">-7.15%</div>
-        </div>
-      </div>
-      <p class="muted">
-        The normalized dynamic error is M/K − 1. At the cutoff frequency,
-        the normalized magnitude is 1/√2 ≈ 0.707.
-      </p>
-    </div>
+  <div id="predictBox">
+    <h3>Predict, then check</h3>
+    <p><em>Pick an answer BEFORE you touch the sliders. The plot below shows the starting situation.</em></p>
+    <p id="pQuestion"></p>
+    <div id="pOptions"></div>
+    <button id="pCheck">Check my prediction</button>
+    <button id="pNext">Next question</button>
+    <p id="pFeedback"></p>
+    <p id="pScore">Score: 0 / 0</p>
   </div>
 
-  <h3>Input and Output Sinusoids</h3>
-  <div id="m2Signals" class="plot"></div>
+  <div id="plot"></div>
 
-  <h3>Bode Plots</h3>
-  <div id="m2BodeMag" class="plot"></div>
-  <div id="m2BodePhase" class="plot"></div>
-
-  <h3>Design Check: Maximum Time Constant</h3>
-  <div class="panel">
-    <p>
-      Find the maximum τ for a normalized amplitude error no greater than 5%
-      at an input frequency of 100 Hz.
-    </p>
-    <p class="equation">
-      M/K ≥ 0.95
-      &nbsp; ⇒ &nbsp;
-      τ ≤ √(1/0.95² − 1) / (2πf)
-    </p>
-    <button id="m2Design">Calculate Design Limit</button>
-    <div id="m2DesignResult" class="result" aria-live="polite"></div>
-  </div>
-</section>
-
-<!-- MODULE 3 -->
-<section id="module3" class="module">
-  <h2>Module 3: Second-Order Systems</h2>
-  <p>
-    Compare underdamped, critically damped, and overdamped systems.
-  </p>
-
-  <div class="equation">
-    <strong>Transfer function:</strong>
-    G(s) = Kω<sub>n</sub>² /
-    (s² + 2ζω<sub>n</sub>s + ω<sub>n</sub>²)
-    <br>
-    <strong>Poles:</strong>
-    s = −ζω<sub>n</sub> ± ω<sub>n</sub>√(ζ² − 1)
+  <div id="logSection">
+    <h3>Error fraction on a log axis</h3>
+    <p>e(t) = 1 − y/(K·A) = e<sup>−t/τ</sup>, so ln e(t) = −t/τ: a straight line with slope −1/τ</p>
+    <div id="plotLog"></div>
   </div>
 
-  <div class="grid">
-    <div class="panel">
-      <h3>System Parameters</h3>
-      <div class="control">
-        <label for="m3K">Gain K</label>
-        <input id="m3K" type="number" min="0.1" max="10" step="0.1" value="1">
-      </div>
-      <div class="control">
-        <label for="m3Wn">Natural Frequency ωn (rad/s)</label>
-        <input id="m3Wn" type="number" min="0.1" max="30" step="0.1" value="4">
-      </div>
-      <div class="control">
-        <label for="m3Zeta">Damping Ratio ζ</label>
-        <input id="m3Zeta" type="number" min="0" max="3" step="0.05" value="0.5">
-      </div>
-      <button id="m3Update">Update Second-Order Response</button>
-      <p class="muted">
-        ζ &lt; 1: underdamped; ζ = 1: critically damped; ζ &gt; 1: overdamped.
-      </p>
-    </div>
+  <h3>Validation checks</h3>
+  <table>
+    <thead>
+      <tr><th>Check</th><th>Expected</th><th>Your value</th><th>Result</th></tr>
+    </thead>
+    <tbody id="checkBody"></tbody>
+  </table>
 
-    <div class="panel">
-      <h3>Response Metrics</h3>
-      <div class="grid">
-        <div class="metric">
-          <div class="muted">Rise Time (10–90%)</div>
-          <div class="value" id="m3Rise">—</div>
-        </div>
-        <div class="metric">
-          <div class="muted">Peak Time</div>
-          <div class="value" id="m3PeakTime">—</div>
-        </div>
-        <div class="metric">
-          <div class="muted">Overshoot</div>
-          <div class="value" id="m3Overshoot">—</div>
-        </div>
-        <div class="metric">
-          <div class="muted">Settling Time (2%)</div>
-          <div class="value" id="m3Settling">—</div>
-        </div>
-      </div>
-      <h3>Poles</h3>
-      <div id="m3Poles" class="result"></div>
-      <div id="m3Type" class="result"></div>
-    </div>
-  </div>
+  <script>
+    let K = 1;
+    const A_STEP = 1;     // step size
+    const A_RAMP = 0.1;   // ramp slope (units per second)
+    const TMAX = 60;
 
-  <h3>Step Response Comparison</h3>
-  <div id="m3Response" class="plot"></div>
+    // Closed-form responses
+    function stepResp(t, tau, A) {
+      return K * A * (1 - Math.exp(-t / tau));
+    }
+    function rampResp(t, tau, A) {
+      return K * A * (t - tau + tau * Math.exp(-t / tau));
+    }
 
-  <h3>Selected System: Phase Plane</h3>
-  <p class="muted">
-    The phase plane shows output position y(t) against its velocity dy/dt.
-  </p>
-  <div id="m3PhasePlane" class="plot"></div>
+    function draw() {
+      const mode = document.getElementById('inputType').value;
+      const tau = parseFloat(document.getElementById('tau').value);
+      document.getElementById('tauVal').textContent = tau;
 
-  <hr>
-  <h3>Mass-Spring-Damper State-Space Model</h3>
-  <p class="equation">
-    x₁' = x₂
-    <br>
-    x₂' = −(k/m)x₁ − (b/m)x₂ + (1/m)u
-    <br>
-    A = [[0, 1], [−k/m, −b/m]]
-    <br>
-    B = [[0], [1/m]]
-  </p>
-  <div class="grid">
-    <div class="panel">
-      <div class="control">
-        <label for="m3Mass">Mass m (kg)</label>
-        <input id="m3Mass" type="number" min="0.1" step="0.1" value="1">
-      </div>
-      <div class="control">
-        <label for="m3Damping">Damping b (N·s/m)</label>
-        <input id="m3Damping" type="number" min="0" step="0.1" value="2">
-      </div>
-      <div class="control">
-        <label for="m3Spring">Spring Constant k (N/m)</label>
-        <input id="m3Spring" type="number" min="0.1" step="0.1" value="4">
-      </div>
-      <button id="m3StateCalc">Calculate State-Space Eigenvalues</button>
-    </div>
-    <div class="panel">
-      <h3>State-Space Results</h3>
-      <div id="m3Matrix" class="result"></div>
-      <div id="m3Eigen" class="result"></div>
-    </div>
-  </div>
-</section>
+      K = parseFloat(document.getElementById('gain').value);
+      document.getElementById('gainVal').textContent = K;
 
-<!-- MODULE 4 -->
-<section id="module4" class="module">
-  <h2>Module 4: Sensor Challenge</h2>
-  <p>
-    Estimate the gain K and time constant τ of a hidden first-order sensor.
-    The measured response includes noise.
-  </p>
-
-  <div class="equation">
-    y(t) = KA(1 − e<sup>−t/τ</sup>) + noise
-  </div>
-
-  <div class="grid">
-    <div class="panel">
-      <h3>Sensor Measurement</h3>
-      <p class="muted">
-        The true parameters are hidden until you reveal the answer.
-        Use the noisy response to estimate them.
-      </p>
-      <div id="m4Plot" class="plot"></div>
-      <button id="m4New" class="secondary">New Sensor</button>
-      <button id="m4Reveal" class="secondary">Reveal Answer</button>
-    </div>
-
-    <div class="panel">
-      <h3>Your Estimate</h3>
-      <div class="control">
-        <label for="m4GuessK">Estimated Gain K</label>
-        <input id="m4GuessK" type="number" min="0.1" max="5" step="0.05" value="1">
-      </div>
-      <div class="control">
-        <label for="m4GuessTau">Estimated Time Constant τ (s)</label>
-        <input id="m4GuessTau" type="number" min="0.1" max="5" step="0.05" value="1">
-      </div>
-      <button id="m4Submit">Check My Estimate</button>
-      <div id="m4Result" class="result" aria-live="polite">
-        Submit your estimates to see your score.
-      </div>
-      <hr>
-      <h3>Score</h3>
-      <div class="metric">
-        <div class="muted">Total Points</div>
-        <div class="value" id="m4Score">0</div>
-      </div>
-      <p class="muted">
-        You earn 10 points for each parameter estimated within 10% of its
-        true value. Each sensor can be scored once.
-      </p>
-    </div>
-  </div>
-</section>
-
-</main>
-
-<footer>
-  Dynamic Characteristics Toolkit · Interactive Engineering Learning Tool
-</footer>
-
-<script>
-"use strict";
-
-/* GENERAL HELPERS */
-function numberValue(id, fallback, min, max) {
-  const raw = document.getElementById(id).value;
-  const n = Number(raw);
-  if (raw.trim() === "" || !Number.isFinite(n)) return fallback;
-  return Math.min(max, Math.max(min, n));
-}
-
-function fmt(value, digits = 3) {
-  if (!Number.isFinite(value)) return "—";
-  return value.toFixed(digits);
-}
-
-function makeTime(end, count = 301) {
-  return Array.from({ length: count }, (_, i) => end * i / (count - 1));
-}
-
-function showPlot(id, data, layout) {
-  Plotly.react(id, data, {
-    paper_bgcolor: "white",
-    plot_bgcolor: "white",
-    font: { family: "Arial, sans-serif", color: "#172033" },
-    margin: { t: 55, r: 25, b: 55, l: 65 },
-    ...layout
-  }, { responsive: true, displaylogo: false });
-}
-
-/* NAVIGATION */
-document.querySelectorAll("nav button").forEach(button => {
-  button.addEventListener("click", () => {
-    document.querySelectorAll("nav button").forEach(b => b.classList.remove("active"));
-    document.querySelectorAll(".module").forEach(m => m.classList.remove("active"));
-    button.classList.add("active");
-    document.getElementById(button.dataset.module).classList.add("active");
-
-    setTimeout(() => {
-      document.querySelectorAll(".module.active .plot").forEach(plot => {
-        if (plot.data) Plotly.Plots.resize(plot);
-      });
-    }, 50);
-  });
-});
-
-/* MODULE 1: FIRST-ORDER RESPONSE */
-function updateModule1() {
-  const K = numberValue("m1K", 2, 0.1, 5);
-  const tau = numberValue("m1Tau", 1, 0.1, 5);
-  const A = numberValue("m1A", 1, 0.1, 10);
-  const type = document.getElementById("m1Type").value;
-  const finalValue = K * A;
-  const end = 5 * tau;
-  const t = makeTime(end);
-  const y = [];
-  const ideal = [];
-  const logError = [];
-  const logTimes = [];
-
-  document.getElementById("m1KVal").textContent = fmt(K, 1);
-  document.getElementById("m1TauVal").textContent = fmt(tau, 1);
-  document.getElementById("m1MetricTau").textContent = fmt(tau, 2) + " s";
-  document.getElementById("m1Metric3Tau").textContent = fmt(3 * tau, 2) + " s";
-  document.getElementById("m1Final").textContent = fmt(finalValue, 2);
-  document.getElementById("m1Lag").textContent = fmt(K * A * tau, 2);
-
-  t.forEach(time => {
-    if (type === "step") {
-      y.push(finalValue * (1 - Math.exp(-time / tau)));
-      ideal.push(finalValue);
-
-      if (time > 0) {
-        logTimes.push(time);
-        logError.push(-time / tau);
+      if (mode === 'step') {
+        document.getElementById('eq').innerHTML =
+          'Step input: y(t) = K·A·(1 − e<sup>−t/τ</sup>)';
+        drawStep(tau);
+        document.getElementById('logSection').style.display = 'block';
+        drawLog(tau);
+      } else {
+        document.getElementById('eq').innerHTML =
+          'Ramp input x(t) = A·t: y(t) = K·A·(t − τ + τ·e<sup>−t/τ</sup>)';
+        drawRamp(tau);
+        document.getElementById('logSection').style.display = 'none';
       }
-    } else {
-      y.push(finalValue * (time - tau + tau * Math.exp(-time / tau)));
-      ideal.push(finalValue * time);
+      updateChecks(mode, tau);
     }
-  });
 
-  const responseData = [
-    {
-      x: t, y, type: "scatter", mode: "lines",
-      name: "System Output", line: { width: 3 }
-    },
-    {
-      x: t, y: ideal, type: "scatter", mode: "lines",
-      name: type === "step" ? "Final Value" : "Ideal Ramp Output",
-      line: { dash: "dash", width: 2 }
+    function drawStep(tau) {
+      const A = A_STEP;
+      const t = [];
+      const out = [];
+      for (let x = 0; x <= TMAX; x += 0.1) {
+        t.push(x);
+        out.push(stepResp(x, tau, A));
+      }
+
+      const curve = { x: t, y: out, mode: 'lines', name: 'y(t)', line: { width: 3 } };
+
+      const markers = {
+        x: [tau, 3 * tau],
+        y: [stepResp(tau, tau, A), stepResp(3 * tau, tau, A)],
+        mode: 'markers+text',
+        name: 'markers',
+        text: ['63.2% at τ', '95% at 3τ'],
+        textposition: 'bottom right',
+        marker: { size: 10, color: 'red' }
+      };
+
+      const final = {
+        x: [0, TMAX], y: [K * A, K * A],
+        mode: 'lines', name: 'K·A',
+        line: { dash: 'dash', color: 'gray' }
+      };
+
+      const layout = {
+        xaxis: { title: 't (s)', range: [0, TMAX] },
+        yaxis: { title: 'y(t)', range: [0, 1.1 * K * A] },
+        margin: { t: 20 },
+        legend: { orientation: 'h' }
+      };
+
+      Plotly.react('plot', [final, curve, markers], layout, { responsive: true });
     }
-  ];
 
-  if (type === "step") {
-    responseData.push({
-      x: [tau, 3 * tau],
-      y: [finalValue * (1 - Math.exp(-1)), finalValue * (1 - Math.exp(-3))],
-      type: "scatter", mode: "markers+text",
-      name: "Key Points",
-      text: ["63.2% at τ", "95.0% at 3τ"],
-      textposition: "top center",
-      marker: { size: 9 }
-    });
-  }
+    function drawRamp(tau) {
+      const A = A_RAMP;
+      const t = [];
+      const out = [];
+      for (let x = 0; x <= TMAX; x += 0.1) {
+        t.push(x);
+        out.push(rampResp(x, tau, A));
+      }
 
-  showPlot("m1Response", responseData, {
-    title: type === "step" ? "Step Response" : "Ramp Response",
-    xaxis: { title: "Time (s)", rangemode: "tozero" },
-    yaxis: { title: "Output" },
-    legend: { orientation: "h", y: -0.22 }
-  });
+      const curve = { x: t, y: out, mode: 'lines', name: 'y(t) (sensor)', line: { width: 3 } };
 
-  if (type === "step") {
-    showPlot("m1Error", [{
-      x: logTimes,
-      y: logError,
-      type: "scatter",
-      mode: "lines",
-      name: "ln(e)",
-      line: { width: 3 }
-    }], {
-      title: "Log Error Fraction vs Time",
-      xaxis: { title: "Time (s)" },
-      yaxis: { title: "ln(e)" },
-      annotations: [{
-        text: "Expected slope = −1/τ = " + fmt(-1 / tau, 3) + " s⁻¹",
-        xref: "paper", yref: "paper", x: 0.98, y: 0.95,
-        showarrow: false, xanchor: "right"
-      }]
-    });
-  } else {
-    showPlot("m1Error", [], {
-      title: "Log Error Fraction vs Time",
-      xaxis: { visible: false },
-      yaxis: { visible: false },
-      annotations: [{
-        text: "The logarithmic error plot is for a step input.",
-        showarrow: false, x: 0.5, y: 0.5,
-        xref: "paper", yref: "paper"
-      }]
-    });
-  }
+      // Ideal output: the sensor with no delay would follow K*A*t
+      const ideal = {
+        x: [0, TMAX], y: [0, K * A * TMAX],
+        mode: 'lines', name: 'ideal K·x(t)',
+        line: { dash: 'dash', color: 'gray' }
+      };
 
-  document.getElementById("m1CheckTau").innerHTML =
-    type === "step"
-      ? "At τ: " + fmt(100 * (1 - Math.exp(-1)), 1) +
-        "% of final value. <span class='good'>Expected: 63.2%</span>"
-      : "Ramp response selected. Step-response checks are not applicable.";
+      // Measure the lag and the error at the end of the plot (t = TMAX)
+      const t0 = TMAX;
+      const yv = rampResp(t0, tau, A);            // sensor reading at t0
+      const yi = K * A * t0;                      // ideal reading at t0
+      const tIdeal = yv / (K * A);                // when the ideal line had this value
+      const lagVal = t0 - tIdeal;                 // horizontal gap (seconds)
+      const errVal = yi - yv;                     // vertical gap (output units)
 
-  document.getElementById("m1Check3Tau").innerHTML =
-    type === "step"
-      ? "At 3τ: " + fmt(100 * (1 - Math.exp(-3)), 1) +
-        "% of final value. <span class='good'>Expected: 95.0%</span>"
-      : "Ramp steady-state error: " + fmt(K * A * tau, 3);
+      const lagLine = {
+        x: [tIdeal, (tIdeal + t0) / 2, t0], y: [yv, yv, yv],
+        mode: 'lines+text', name: 'lag',
+        text: ['', 'lag = ' + lagVal.toFixed(1) + ' s', ''],
+        textposition: 'bottom center',
+        line: { color: 'green', width: 3 }
+      };
 
-  document.getElementById("m1CheckSlope").innerHTML =
-    type === "step"
-      ? "Log-error slope: " + fmt(-1 / tau, 3) + " s⁻¹."
-      : "Ramp steady-state lag = KAτ = " + fmt(K * A * tau, 3) + ".";
+      const errLine = {
+        x: [t0, t0, t0], y: [yv, (yv + yi) / 2, yi],
+        mode: 'lines+text', name: 'steady-state error',
+        text: ['', 'error = ' + errVal.toFixed(2), ''],
+        textposition: 'middle left',
+        line: { color: 'red', width: 3 }
+      };
 
-  document.getElementById("m1PredictionResult").textContent =
-    "Enter a prediction and check your answer.";
-}
+      const layout = {
+        xaxis: { title: 't (s)', range: [0, TMAX] },
+        yaxis: { title: 'y(t)', range: [0, 1.1 * K * A * TMAX] },
+        margin: { t: 20 },
+        legend: { orientation: 'h' }
+      };
 
-document.getElementById("m1Update").addEventListener("click", updateModule1);
-["m1K", "m1Tau", "m1A", "m1Type"].forEach(id => {
-  document.getElementById(id).addEventListener("input", updateModule1);
-});
-
-document.getElementById("m1Check").addEventListener("click", () => {
-  const type = document.getElementById("m1Type").value;
-  const guess = Number(document.getElementById("m1Prediction").value);
-  const result = document.getElementById("m1PredictionResult");
-
-  if (type !== "step") {
-    result.textContent = "Select Step Input to check the 63.2% prediction.";
-    return;
-  }
-  if (!Number.isFinite(guess) || guess < 0 || guess > 100) {
-    result.textContent = "Enter a valid percentage between 0 and 100.";
-    return;
-  }
-
-  const actual = 100 * (1 - Math.exp(-1));
-  const correct = Math.abs(guess - actual) <= 1;
-  result.innerHTML = (correct
-    ? "<span class='good'>Correct!</span> "
-    : "<span class='bad'>Not quite.</span> ") +
-    "The theoretical value at τ is " + fmt(actual, 2) + "%.";
-});
-
-/* MODULE 2: FREQUENCY RESPONSE */
-function updateModule2() {
-  const K = numberValue("m2K", 1, 0.1, 10);
-  const tau = numberValue("m2Tau", 0.2, 0.001, 10);
-  const omega = numberValue("m2Omega", 2, 0.01, 1000);
-  const A = numberValue("m2A", 1, 0.1, 10);
-
-  const ratio = 1 / Math.sqrt(1 + (omega * tau) ** 2);
-  const magnitude = K * ratio;
-  const phase = -Math.atan(omega * tau);
-  const cutoff = 1 / tau;
-  const outputAmplitude = A * magnitude;
-  const error = (ratio - 1) * 100;
-
-  document.getElementById("m2Magnitude").textContent = fmt(magnitude, 4);
-  document.getElementById("m2Phase").textContent = fmt(-phase * 180 / Math.PI, 2) + "° lag";
-  document.getElementById("m2OutputAmp").textContent = fmt(outputAmplitude, 4);
-  document.getElementById("m2Cutoff").textContent = fmt(cutoff, 3) + " rad/s";
-  document.getElementById("m2Error").textContent = fmt(error, 2) + "%";
-
-  const tEnd = 4 * 2 * Math.PI / omega;
-  const t = makeTime(tEnd, 500);
-  const input = t.map(time => A * Math.sin(omega * time));
-  const output = t.map(time => outputAmplitude * Math.sin(omega * time + phase));
-
-  showPlot("m2Signals", [
-    { x: t, y: input, mode: "lines", name: "Input", line: { width: 2 } },
-    { x: t, y: output, mode: "lines", name: "Output", line: { width: 3 } }
-  ], {
-    title: "Sinusoidal Input and Output",
-    xaxis: { title: "Time (s)" },
-    yaxis: { title: "Amplitude" },
-    legend: { orientation: "h", y: -0.22 }
-  });
-
-  const frequencies = Array.from({ length: 301 }, (_, i) =>
-    10 ** (-2 + i * 4 / 300)
-  );
-  const magnitudeDb = frequencies.map(w =>
-    20 * Math.log10(K / Math.sqrt(1 + (w * tau) ** 2))
-  );
-  const phaseDegrees = frequencies.map(w =>
-    -Math.atan(w * tau) * 180 / Math.PI
-  );
-
-  showPlot("m2BodeMag", [
-    { x: frequencies, y: magnitudeDb, mode: "lines", name: "Magnitude" },
-    {
-      x: [cutoff, cutoff], y: [Math.min(...magnitudeDb), 20 * Math.log10(K)],
-      mode: "lines", name: "Cutoff Frequency",
-      line: { dash: "dash" }
+      Plotly.react('plot', [ideal, curve, lagLine, errLine], layout, { responsive: true });
     }
-  ], {
-    title: "Bode Magnitude Plot",
-    xaxis: { title: "Angular Frequency ω (rad/s)", type: "log" },
-    yaxis: { title: "Magnitude (dB)" },
-    legend: { orientation: "h", y: -0.22 }
-  });
 
-  showPlot("m2BodePhase", [
-    { x: frequencies, y: phaseDegrees, mode: "lines", name: "Phase" },
-    {
-      x: [cutoff, cutoff], y: [-90, 0],
-      mode: "lines", name: "Cutoff Frequency",
-      line: { dash: "dash" }
+    function drawLog(tau) {
+      const A = A_STEP;
+      const t = [];
+      const e = [];
+      for (let x = 0; x <= TMAX; x += 0.1) {
+        const ef = 1 - stepResp(x, tau, A) / (K * A);   // error fraction
+        if (ef > 1e-6) { t.push(x); e.push(ef); }       // skip values too tiny for a log axis
+      }
+
+      const line = { x: t, y: e, mode: 'lines', name: 'e(t)', line: { width: 3 } };
+
+      const mark = {
+        x: [tau], y: [1 - stepResp(tau, tau, A) / (K * A)],
+        mode: 'markers+text', name: 'e(τ)',
+        text: ['e(τ) = 0.368'], textposition: 'top right',
+        marker: { size: 10, color: 'red' }
+      };
+
+      const layout = {
+        xaxis: { title: 't (s)', range: [0, TMAX] },
+        yaxis: { title: 'e(t) (log scale)', type: 'log', range: [-4, 0.1] },
+        margin: { t: 20 },
+        legend: { orientation: 'h' }
+      };
+
+      Plotly.react('plotLog', [line, mark], layout, { responsive: true });
     }
-  ], {
-    title: "Bode Phase Plot",
-    xaxis: { title: "Angular Frequency ω (rad/s)", type: "log" },
-    yaxis: { title: "Phase (degrees)", range: [-95, 5] },
-    legend: { orientation: "h", y: -0.22 }
-  });
-}
 
-document.getElementById("m2Update").addEventListener("click", updateModule2);
-["m2K", "m2Tau", "m2Omega", "m2A"].forEach(id => {
-  document.getElementById(id).addEventListener("change", updateModule2);
-});
-
-document.getElementById("m2Design").addEventListener("click", () => {
-  const f = 100;
-  const allowedRatio = 0.95;
-  const tauMax = Math.sqrt(1 / allowedRatio ** 2 - 1) / (2 * Math.PI * f);
-  const phaseAt50 = -Math.atan(2 * Math.PI * 50 * tauMax) * 180 / Math.PI;
-  document.getElementById("m2DesignResult").innerHTML =
-    "Maximum τ: <strong>" + fmt(tauMax * 1000, 3) +
-    " ms</strong><br>Phase lag at 50 Hz: <strong>" +
-    fmt(-phaseAt50, 2) + "°</strong>.";
-});
-
-/* MODULE 3: SECOND-ORDER RESPONSE */
-function secondOrderResponse(zeta, wn, K, t) {
-  const eps = 1e-9;
-  if (zeta < 1 - eps) {
-    const wd = wn * Math.sqrt(1 - zeta * zeta);
-    return K * (1 - Math.exp(-zeta * wn * t) *
-      (Math.cos(wd * t) +
-       (zeta / Math.sqrt(1 - zeta * zeta)) * Math.sin(wd * t)));
-  }
-  if (Math.abs(zeta - 1) <= eps) {
-    return K * (1 - Math.exp(-wn * t) * (1 + wn * t));
-  }
-  const root = Math.sqrt(zeta * zeta - 1);
-  const p1 = -wn * (zeta - root);
-  const p2 = -wn * (zeta + root);
-  return K * (1 + (p2 * Math.exp(p1 * t) -
-                    p1 * Math.exp(p2 * t)) / (p1 - p2));
-}
-
-function secondOrderVelocity(zeta, wn, K, t) {
-  const eps = 1e-9;
-  if (zeta < 1 - eps) {
-    const wd = wn * Math.sqrt(1 - zeta * zeta);
-    return K * wn * wn / wd * Math.exp(-zeta * wn * t) * Math.sin(wd * t);
-  }
-  if (Math.abs(zeta - 1) <= eps) {
-    return K * wn * wn * t * Math.exp(-wn * t);
-  }
-  const root = Math.sqrt(zeta * zeta - 1);
-  const p1 = -wn * (zeta - root);
-  const p2 = -wn * (zeta + root);
-  return K * (p2 * p1 * Math.exp(p1 * t) -
-              p1 * p2 * Math.exp(p2 * t)) / (p1 - p2);
-}
-
-function poleText(zeta, wn) {
-  if (zeta < 1) {
-    const real = -zeta * wn;
-    const imag = wn * Math.sqrt(1 - zeta * zeta);
-    return fmt(real, 3) + " ± j" + fmt(imag, 3);
-  }
-  const root = Math.sqrt(Math.max(0, zeta * zeta - 1));
-  const p1 = -wn * (zeta - root);
-  const p2 = -wn * (zeta + root);
-  return fmt(p1, 3) + " , " + fmt(p2, 3);
-}
-
-function updateModule3() {
-  const K = numberValue("m3K", 1, 0.1, 10);
-  const wn = numberValue("m3Wn", 4, 0.1, 30);
-  const zeta = numberValue("m3Zeta", 0.5, 0, 3);
-  const end = Math.max(5 / (Math.max(zeta, 0.15) * wn), 6 / wn);
-  const t = makeTime(end, 500);
-  const y = t.map(time => secondOrderResponse(zeta, wn, K, time));
-  const v = t.map(time => secondOrderVelocity(zeta, wn, K, time));
-
-  const traces = [
-    { x: t, y, mode: "lines", name: "Selected ζ = " + fmt(zeta, 2), line: { width: 3 } },
-    { x: t, y: t.map(time => K), mode: "lines", name: "Final Value",
-      line: { dash: "dash" } }
-  ];
-
-  [0.5, 1, 1.5].forEach(damping => {
-    if (Math.abs(damping - zeta) < 1e-9) return;
-    traces.push({
-      x: t,
-      y: t.map(time => secondOrderResponse(damping, wn, K, time)),
-      mode: "lines",
-      name: "ζ = " + damping
-    });
-  });
-
-  showPlot("m3Response", traces, {
-    title: "Second-Order Unit-Step Response",
-    xaxis: { title: "Time (s)" },
-    yaxis: { title: "Output" },
-    legend: { orientation: "h", y: -0.25 }
-  });
-
-  showPlot("m3PhasePlane", [{
-    x: y, y: v, mode: "lines", name: "Phase Trajectory", line: { width: 3 }
-  }], {
-    title: "Phase Plane",
-    xaxis: { title: "Output y(t)" },
-    yaxis: { title: "Velocity dy/dt" }
-  });
-
-  const poles = poleText(zeta, wn);
-  document.getElementById("m3Poles").innerHTML =
-    "<strong>Poles:</strong> " + poles;
-
-  let type;
-  if (zeta < 1 - 1e-9) type = "Underdamped";
-  else if (Math.abs(zeta - 1) <= 1e-9) type = "Critically damped";
-  else type = "Overdamped";
-  document.getElementById("m3Type").innerHTML =
-    "<strong>System type:</strong> " + type;
-
-  const target = 0.1 * K;
-  const target90 = 0.9 * K;
-  let riseTime = null;
-  let t10 = null;
-  let t90 = null;
-
-  for (let i = 1; i < y.length; i++) {
-    if (t10 === null && y[i] >= target) t10 = t[i];
-    if (t90 === null && y[i] >= target90) t90 = t[i];
-  }
-  if (t10 !== null && t90 !== null) riseTime = t90 - t10;
-
-  let peak = Math.max(...y);
-  let peakIndex = y.indexOf(peak);
-  let peakTime = t[peakIndex];
-  let overshoot = Math.max(0, (peak - K) / K * 100);
-
-  let settling = null;
-  for (let i = 0; i < y.length; i++) {
-    const allRemainInside = y.slice(i).every(value => Math.abs(value - K) <= 0.02 * Math.abs(K));
-    if (allRemainInside) {
-      settling = t[i];
-      break;
+    function updateChecks(mode, tau) {
+      let tests;
+      if (mode === 'step') {
+        const A = A_STEP;
+        tests = [
+          { name: 'y(τ) / KA', expected: 0.632, value: stepResp(tau, tau, A) / (K * A), tol: 0.001 },
+          { name: 'y(3τ) / KA', expected: 0.950, value: stepResp(3 * tau, tau, A) / (K * A), tol: 0.001 },
+          { name: 'Error fraction e(τ)', expected: 0.368, value: 1 - stepResp(tau, tau, A) / (K * A), tol: 0.001 },
+          { name: 'Slope of ln e(t) (1/s)', expected: -1 / tau,
+            value: (Math.log(1 - stepResp(3 * tau, tau, A) / (K * A)) -
+                    Math.log(1 - stepResp(tau, tau, A) / (K * A))) / (2 * tau),
+            tol: 0.001 }
+        ];
+      } else {
+        // "Steady state" = after the transient has died. We evaluate at t = 10τ.
+        const A = A_RAMP;
+        const tc = 10 * tau;
+        const yv = rampResp(tc, tau, A);
+        tests = [
+          { name: 'Ramp lag time (s)', expected: tau, value: tc - yv / (K * A), tol: 0.01 },
+          { name: 'Steady-state error (K·A·τ)', expected: K * A * tau, value: K * A * tc - yv, tol: 0.01 }
+        ];
+      }
+      let html = '';
+      for (const c of tests) {
+        const ok = Math.abs(c.value - c.expected) < c.tol;
+        html += '<tr><td>' + c.name + '</td><td>' + c.expected.toFixed(3) +
+                '</td><td>' + c.value.toFixed(3) + '</td><td class="' +
+                (ok ? 'pass">PASS' : 'fail">FAIL') + '</td></tr>';
+      }
+      document.getElementById('checkBody').innerHTML = html;
     }
-  }
 
-  document.getElementById("m3Rise").textContent =
-    riseTime === null ? "Not reached" : fmt(riseTime, 3) + " s";
-  document.getElementById("m3PeakTime").textContent =
-    zeta >= 1 ? "No oscillatory peak" : fmt(peakTime, 3) + " s";
-  document.getElementById("m3Overshoot").textContent =
-    zeta >= 1 ? "0%" : fmt(overshoot, 2) + "%";
-  document.getElementById("m3Settling").textContent =
-    settling === null ? "Not reached in plotted interval" : fmt(settling, 3) + " s";
-}
+    document.getElementById('inputType').addEventListener('change', draw);
+    document.getElementById('tau').addEventListener('input', draw);
+    document.getElementById('gain').addEventListener('input', draw);
 
-document.getElementById("m3Update").addEventListener("click", updateModule3);
-["m3K", "m3Wn", "m3Zeta"].forEach(id => {
-  document.getElementById(id).addEventListener("change", updateModule3);
-});
+    // ---------- Predict, then check ----------
+    // Each question: starting settings (before), settings applied on reveal (after),
+    // the options, the index of the correct option, and an explanation.
+    const QUESTIONS = [
+      {
+        mode: 'step', before: { tau: 5, K: 1 }, after: { tau: 10, K: 1 },
+        q: 'Step input, τ = 5 s. If you double τ to 10 s, what happens to the time the sensor needs to reach 63.2% of its final value?',
+        options: ['It halves (2.5 s)', 'It stays the same (5 s)', 'It doubles (10 s)', 'It quadruples (20 s)'],
+        correct: 2,
+        why: 'The 63.2% point is exactly at t = τ, so the time equals τ: 5 s becomes 10 s.'
+      },
+      {
+        mode: 'step', before: { tau: 10, K: 1 }, after: { tau: 10, K: 2 },
+        q: 'Step input, τ = 10 s, K = 1. If you double K to 2, what happens to the curve?',
+        options: [
+          'It rises twice as fast',
+          'The final value doubles, but the speed (τ) stays the same',
+          'Both the final value and the speed double',
+          'Nothing changes'
+        ],
+        correct: 1,
+        why: 'K sets the final value K·A. τ sets the speed. The 63.2% point is still at t = 10 s, but now it is 63.2% of a bigger final value.'
+      },
+      {
+        mode: 'step', before: { tau: 10, K: 1 }, after: { tau: 10, K: 1 },
+        q: 'Step input, τ = 10 s. You read the sensor at t = 30 s. How much of the final value has it reached?',
+        options: ['63.2%', '86.5%', '95%', '100%'],
+        correct: 2,
+        why: '30 s = 3τ, and 1 − e^(−3) = 0.95. Read it earlier than that and the reading is still wrong.'
+      },
+      {
+        mode: 'ramp', before: { tau: 5, K: 1 }, after: { tau: 10, K: 1 },
+        q: 'Ramp input, τ = 5 s. If you double τ to 10 s, what happens to the lag (the time delay behind the input)?',
+        options: ['It halves', 'It stays the same', 'It doubles', 'It quadruples'],
+        correct: 2,
+        why: 'For a ramp, the sensor lags the input by exactly τ seconds, so doubling τ doubles the lag.'
+      },
+      {
+        mode: 'ramp', before: { tau: 10, K: 1 }, after: { tau: 10, K: 2 },
+        q: 'Ramp input, τ = 10 s. If you double K, what happens to the lag and to the steady-state error?',
+        options: [
+          'Lag doubles, error doubles',
+          'Lag stays τ, error doubles',
+          'Lag stays τ, error stays the same',
+          'Lag doubles, error stays the same'
+        ],
+        correct: 1,
+        why: 'The lag is τ and does not depend on K. The error is K·A·τ, so it doubles with K.'
+      }
+    ];
 
-/* STATE-SPACE EIGENVALUES */
-document.getElementById("m3StateCalc").addEventListener("click", () => {
-  const m = numberValue("m3Mass", 1, 0.1, 1e6);
-  const b = numberValue("m3Damping", 2, 0, 1e6);
-  const k = numberValue("m3Spring", 4, 0.1, 1e6);
+    let qIndex = 0;
+    let answered = false;
+    let asked = 0;
+    let score = 0;
 
-  const a21 = -k / m;
-  const a22 = -b / m;
-  document.getElementById("m3Matrix").innerHTML =
-    "<strong>A =</strong> [[0, 1], [" + fmt(a21, 4) + ", " + fmt(a22, 4) + "]]" +
-    "<br><strong>B =</strong> [[0], [" + fmt(1 / m, 4) + "]]";
-
-  const discriminant = b * b - 4 * m * k;
-  let eigenvalues;
-  if (discriminant < 0) {
-    const real = -b / (2 * m);
-    const imag = Math.sqrt(-discriminant) / (2 * m);
-    eigenvalues = fmt(real, 4) + " ± j" + fmt(imag, 4);
-  } else {
-    const root = Math.sqrt(discriminant);
-    eigenvalues = fmt((-b + root) / (2 * m), 4) +
-      " , " + fmt((-b - root) / (2 * m), 4);
-  }
-
-  document.getElementById("m3Eigen").innerHTML =
-    "<strong>Eigenvalues:</strong> " + eigenvalues;
-});
-
-/* MODULE 4: SENSOR CHALLENGE */
-let sensor = {};
-let totalScore = 0;
-let scoredThisSensor = false;
-
-function createSensor() {
-  sensor = {
-    K: Math.round((0.5 + Math.random() * 4.0) * 100) / 100,
-    tau: Math.round((0.3 + Math.random() * 3.7) * 100) / 100,
-    A: 1
-  };
-  scoredThisSensor = false;
-  document.getElementById("m4Result").textContent =
-    "New sensor created. Estimate K and τ, then submit your answer.";
-  drawSensor();
-}
-
-function drawSensor() {
-  const end = 5 * sensor.tau;
-  const t = makeTime(end, 100);
-  const trueY = t.map(time =>
-    sensor.K * sensor.A * (1 - Math.exp(-time / sensor.tau))
-  );
-  const noisyY = trueY.map(value =>
-    value + (Math.random() - 0.5) * sensor.K * 0.08
-  );
-
-  showPlot("m4Plot", [
-    {
-      x: t, y: noisyY, mode: "markers", name: "Noisy Sensor Measurements",
-      marker: { size: 5 }
-    },
-    {
-      x: t, y: trueY, mode: "lines", name: "Measured Trend",
-      line: { width: 2 }
+    // Put the page into a given state (mode + sliders) and redraw
+    function setControls(settings, mode) {
+      document.getElementById('inputType').value = mode;
+      document.getElementById('tau').value = settings.tau;
+      document.getElementById('gain').value = settings.K;
+      draw();
     }
-  ], {
-    title: "Sensor Output with Measurement Noise",
-    xaxis: { title: "Time (s)" },
-    yaxis: { title: "Measured Output" },
-    legend: { orientation: "h", y: -0.25 }
-  });
-}
 
-document.getElementById("m4New").addEventListener("click", createSensor);
+    function showQuestion() {
+      const Q = QUESTIONS[qIndex];
+      answered = false;
+      setControls(Q.before, Q.mode);
 
-document.getElementById("m4Reveal").addEventListener("click", () => {
-  document.getElementById("m4Result").innerHTML =
-    "<strong>True gain K:</strong> " + fmt(sensor.K, 2) +
-    "<br><strong>True time constant τ:</strong> " + fmt(sensor.tau, 2) + " s";
-});
+      document.getElementById('pQuestion').textContent =
+        'Question ' + (qIndex + 1) + ' of ' + QUESTIONS.length + ': ' + Q.q;
 
-document.getElementById("m4Submit").addEventListener("click", () => {
-  if (scoredThisSensor) {
-    document.getElementById("m4Result").textContent =
-      "You have already scored this sensor. Select New Sensor to continue.";
-    return;
-  }
+      const box = document.getElementById('pOptions');
+      box.innerHTML = '';
+      Q.options.forEach(function (text, i) {
+        const label = document.createElement('label');
+        label.className = 'opt';
+        const radio = document.createElement('input');
+        radio.type = 'radio';
+        radio.name = 'pOpt';
+        radio.value = i;
+        label.appendChild(radio);
+        label.appendChild(document.createTextNode(' ' + text));
+        box.appendChild(label);
+      });
 
-  const guessK = Number(document.getElementById("m4GuessK").value);
-  const guessTau = Number(document.getElementById("m4GuessTau").value);
-  if (!Number.isFinite(guessK) || guessK <= 0 ||
-      !Number.isFinite(guessTau) || guessTau <= 0) {
-    document.getElementById("m4Result").textContent =
-      "Enter positive numerical estimates for both K and τ.";
-    return;
-  }
+      document.getElementById('pFeedback').textContent = '';
+      document.getElementById('pCheck').disabled = false;
+      document.getElementById('pNext').disabled = true;
+    }
 
-  const kCorrect = Math.abs(guessK - sensor.K) / sensor.K <= 0.10;
-  const tauCorrect = Math.abs(guessTau - sensor.tau) / sensor.tau <= 0.10;
-  const earned = (kCorrect ? 10 : 0) + (tauCorrect ? 10 : 0);
-  totalScore += earned;
-  scoredThisSensor = true;
-  document.getElementById("m4Score").textContent = totalScore;
+    function checkPrediction() {
+      if (answered) return;
+      const Q = QUESTIONS[qIndex];
+      const chosen = document.querySelector('input[name="pOpt"]:checked');
+      const fb = document.getElementById('pFeedback');
+      if (!chosen) {
+        fb.textContent = 'Pick an answer first.';
+        return;
+      }
+      answered = true;
+      asked++;
+      const ok = parseInt(chosen.value, 10) === Q.correct;
+      if (ok) score++;
 
-  document.getElementById("m4Result").innerHTML =
-    "Gain estimate: " + (kCorrect
-      ? "<span class='good'>Correct (+10)</span>"
-      : "<span class='bad'>Outside 10% tolerance</span>") +
-    "<br>Time constant estimate: " + (tauCorrect
-      ? "<span class='good'>Correct (+10)</span>"
-      : "<span class='bad'>Outside 10% tolerance</span>") +
-    "<br><strong>Points earned: " + earned + "</strong>" +
-    "<br><span class='muted'>Select New Sensor to try another challenge.</span>";
-});
+      setControls(Q.after, Q.mode);   // move the sliders so the user sees the result
 
-/* INITIALIZE ALL MODULES */
-function initializeToolkit() {
-  updateModule1();
-  updateModule2();
-  updateModule3();
-  document.getElementById("m3StateCalc").click();
-  createSensor();
-}
+      fb.textContent = (ok ? 'Correct. ' : 'Not quite. The answer is: ' + Q.options[Q.correct] + '. ') + Q.why;
+      document.getElementById('pScore').textContent = 'Score: ' + score + ' / ' + asked;
+      document.getElementById('pCheck').disabled = true;
+      document.getElementById('pNext').disabled = false;
+    }
 
-window.addEventListener("load", initializeToolkit);
-</script>
+    function nextQuestion() {
+      qIndex = (qIndex + 1) % QUESTIONS.length;
+      showQuestion();
+    }
+
+    document.getElementById('pCheck').addEventListener('click', checkPrediction);
+    document.getElementById('pNext').addEventListener('click', nextQuestion);
+
+    showQuestion();   // also draws the plot for the first time
+  </script>
 </body>
 </html>
