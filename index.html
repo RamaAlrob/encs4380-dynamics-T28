@@ -6,77 +6,218 @@
   <title>Module 1 - First-order time response</title>
   <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 16px; }
-    h1 { font-size: 1.4rem; }
-    .control { margin: 12px 0; }
-    input[type=range] { width: 100%; }
-    select { font-size: 1rem; padding: 4px; }
-    table { border-collapse: collapse; width: 100%; margin-top: 12px; }
-    th, td { border: 1px solid #ccc; padding: 6px 8px; text-align: center; }
-    .pass { color: #0a7d2c; font-weight: bold; }
-    .fail { color: #c0392b; font-weight: bold; }
-    #predictBox { border: 2px solid #2d6cdf; border-radius: 8px; padding: 8px 14px; margin: 14px 0; background: #f3f7ff; }
-    #predictBox h3 { margin: 6px 0; }
-    label.opt { display: block; margin: 6px 0; }
-    button { font-size: 1rem; padding: 6px 12px; margin: 6px 6px 6px 0; }
-    #pFeedback { font-weight: bold; }
-    /* Fixed height for the plot boxes: without it Plotly measures the box from its own
-       content and the plots can shrink and overlap when the page layout changes. */
+    :root {
+      --ink: #1f2a44;
+      --muted: #5b6785;
+      --blue: #2d6cdf;
+      --blue-deep: #1d4fb3;
+      --violet: #6d4fd6;
+      --card: #ffffff;
+      --line: #dde3f4;
+      --tint: #eaf1ff;
+      --good: #0a7d2c;
+      --good-bg: #e4f5ea;
+      --bad: #b3261e;
+      --bad-bg: #fbe7e5;
+    }
+    * { box-sizing: border-box; }
+    html { background: #e9e4fb; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+      color: var(--ink);
+      line-height: 1.5;
+      background: linear-gradient(160deg, #dfe9ff 0%, #e9e4fb 55%, #f1e6fa 100%);
+      min-height: 100vh;
+    }
+    .page { max-width: 860px; margin: 0 auto; padding: 28px 16px 48px; }
+
+    /* ---------- title ---------- */
+    .hero { margin: 8px 0 22px; }
+    .hero h1 {
+      margin: 0 0 10px;
+      font-size: clamp(2rem, 6.5vw, 3.2rem);
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+      font-weight: 800;
+      background: linear-gradient(90deg, var(--blue-deep), var(--violet));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    .hero p { margin: 0; color: var(--muted); max-width: 60ch; }
+    .model {
+      display: inline-block;
+      margin-top: 14px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.75);
+      border: 1px solid var(--line);
+      font-family: "Cambria Math", "STIX Two Math", Georgia, serif;
+      font-size: 1.15rem;
+    }
+
+    /* ---------- cards ---------- */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 18px 20px;
+      margin: 0 0 18px;
+      box-shadow: 0 6px 20px rgba(60, 70, 140, 0.08);
+    }
+    .card h2 { margin: 0 0 4px; font-size: 1.1rem; }
+    .card .hint { margin: 0 0 10px; color: var(--muted); font-size: 0.92rem; }
+    #eq { margin: 0 0 8px; color: var(--muted); font-family: "Cambria Math", "STIX Two Math", Georgia, serif; font-size: 1.05rem; }
+
+    /* ---------- controls ---------- */
+    .controls { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; align-items: end; }
+    .control label { display: block; font-weight: 600; margin-bottom: 6px; }
+    .control label span { color: var(--blue-deep); font-variant-numeric: tabular-nums; }
+    input[type=range] { width: 100%; accent-color: var(--blue); }
+    select {
+      width: 100%; font: inherit; padding: 8px 10px;
+      border: 1px solid var(--line); border-radius: 8px; background: #fff; color: var(--ink);
+    }
+    :focus-visible { outline: 3px solid #9db8f2; outline-offset: 2px; }
+
+    /* ---------- predict, then check ---------- */
+    #predictBox {
+      background: var(--tint);
+      border: 2px solid var(--blue);
+      border-radius: 14px;
+      padding: 0 0 14px;
+      margin: 0 0 18px;
+      overflow: hidden;
+      box-shadow: 0 6px 20px rgba(45, 108, 223, 0.15);
+    }
+    #predictBox .bar {
+      background: var(--blue);
+      color: #fff;
+      padding: 10px 20px;
+      margin-bottom: 12px;
+    }
+    #predictBox .bar h2 { margin: 0; font-size: 1.1rem; }
+    #predictBox .bar p { margin: 2px 0 0; font-size: 0.9rem; opacity: 0.92; }
+    #predictBox .body { padding: 0 20px; }
+    #pQuestion { margin: 0 0 8px; font-weight: 600; }
+    label.opt {
+      display: block; margin: 6px 0; padding: 8px 12px;
+      background: #fff; border: 1px solid #c4d4f6; border-radius: 8px; cursor: pointer;
+    }
+    label.opt:hover { border-color: var(--blue); }
+    label.opt:has(input:checked) { border-color: var(--blue); background: #dbe7ff; }
+    label.opt input { margin-right: 6px; accent-color: var(--blue); }
+    button {
+      font: inherit; font-weight: 600; padding: 8px 16px; margin: 8px 8px 4px 0;
+      border-radius: 8px; border: 2px solid var(--blue); cursor: pointer;
+    }
+    #pCheck { background: var(--blue); color: #fff; }
+    #pCheck:hover:not(:disabled) { background: var(--blue-deep); border-color: var(--blue-deep); }
+    #pNext { background: #fff; color: var(--blue-deep); }
+    button:disabled { opacity: 0.45; cursor: not-allowed; }
+    #pFeedback { font-weight: 600; margin: 8px 0 4px; }
+    #pScore { margin: 0; color: var(--muted); font-size: 0.92rem; }
+
+    /* ---------- plots (fixed height so Plotly never collapses or overlaps) ---------- */
     #plot, #plotLog { width: 100%; height: 420px; }
-    @media (max-width: 600px) { #plot, #plotLog { height: 340px; } }
-    /* Space and a thin divider line between the main plot and the log plot */
-    #plot { margin-bottom: 24px; }
-    #logSection { margin: 32px 0 24px; padding-top: 16px; border-top: 2px solid #ddd; }
+    #logSection h2 + p { margin: 0 0 6px; color: var(--muted); font-size: 0.92rem; }
+
+    /* ---------- validation table ---------- */
+    .table-wrap { overflow-x: auto; }
+    table { border-collapse: separate; border-spacing: 0; width: 100%; font-variant-numeric: tabular-nums; }
+    th {
+      background: var(--tint); color: var(--blue-deep); text-align: center; font-size: 0.92rem;
+      padding: 10px 12px; border-bottom: 2px solid #c4d4f6; white-space: nowrap;
+    }
+    th:first-child, td:first-child { text-align: left; }
+    td { text-align: center; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+    tbody tr:last-child td { border-bottom: none; }
+    td.pass { color: var(--good); background: var(--good-bg); font-weight: 700; }
+    td.fail { color: var(--bad); background: var(--bad-bg); font-weight: 700; }
+
+    /* ---------- phone ---------- */
+    @media (max-width: 640px) {
+      .page { padding: 18px 12px 36px; }
+      .card { padding: 14px 14px; }
+      .controls { grid-template-columns: 1fr; gap: 14px; }
+      #plot, #plotLog { height: 340px; }
+      #predictBox .bar, #predictBox .body { padding-left: 14px; padding-right: 14px; }
+      th, td { padding: 8px 8px; }
+    }
   </style>
 </head>
 <body>
-  <h1>Module 1: First-order time response</h1>
-  <p id="eq"></p>
+  <div class="page">
 
-  <div class="control">
-    <label for="inputType">Input: </label>
-    <select id="inputType">
-      <option value="step">Step</option>
-      <option value="ramp">Ramp</option>
-    </select>
+    <header class="hero">
+      <h1>First-order time response</h1>
+      <p>A sensor never reports the present. It reports the past, smoothed. Move τ and K to see how far behind it falls.</p>
+      <div class="model">τ·ẏ + y = K·x</div>
+    </header>
+
+    <section class="card">
+      <h2>Controls</h2>
+      <div class="controls">
+        <div class="control">
+          <label for="inputType">Input signal</label>
+          <select id="inputType">
+            <option value="step">Step</option>
+            <option value="ramp">Ramp</option>
+          </select>
+        </div>
+        <div class="control">
+          <label for="tau">Time constant τ = <span id="tauVal">10</span> s</label>
+          <input type="range" id="tau" min="1" max="20" step="0.5" value="10">
+        </div>
+        <div class="control">
+          <label for="gain">Gain K = <span id="gainVal">1</span></label>
+          <input type="range" id="gain" min="0.5" max="3" step="0.1" value="1">
+        </div>
+      </div>
+    </section>
+
+    <section id="predictBox">
+      <div class="bar">
+        <h2>Predict, then check</h2>
+        <p>Pick an answer before you touch the sliders. The plot shows the starting situation.</p>
+      </div>
+      <div class="body">
+        <p id="pQuestion"></p>
+        <div id="pOptions"></div>
+        <button id="pCheck">Check my prediction</button>
+        <button id="pNext">Next question</button>
+        <p id="pFeedback"></p>
+        <p id="pScore">Score: 0 / 0</p>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Sensor output y(t)</h2>
+      <p id="eq"></p>
+      <div id="plot"></div>
+    </section>
+
+    <section class="card" id="logSection">
+      <h2>Error fraction on a log axis</h2>
+      <p>e(t) = 1 − y/(K·A) = e<sup>−t/τ</sup>, so ln e(t) = −t/τ: a straight line with slope −1/τ.</p>
+      <div id="plotLog"></div>
+    </section>
+
+    <section class="card">
+      <h2>Validation checks</h2>
+      <p class="hint">Each row compares the formula from the lecture with the value this page computes.</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Check</th><th>Expected</th><th>Your value</th><th>Result</th></tr>
+          </thead>
+          <tbody id="checkBody"></tbody>
+        </table>
+      </div>
+    </section>
+
   </div>
-
-  <div class="control">
-    <label for="tau">τ = <span id="tauVal">10</span> s</label>
-    <input type="range" id="tau" min="1" max="20" step="0.5" value="10">
-  </div>
-
-  <div class="control">
-    <label for="gain">K = <span id="gainVal">1</span></label>
-    <input type="range" id="gain" min="0.5" max="3" step="0.1" value="1">
-  </div>
-
-  <div id="predictBox">
-    <h3>Predict, then check</h3>
-    <p><em>Pick an answer BEFORE you touch the sliders. The plot below shows the starting situation.</em></p>
-    <p id="pQuestion"></p>
-    <div id="pOptions"></div>
-    <button id="pCheck">Check my prediction</button>
-    <button id="pNext">Next question</button>
-    <p id="pFeedback"></p>
-    <p id="pScore">Score: 0 / 0</p>
-  </div>
-
-  <div id="plot"></div>
-
-  <div id="logSection">
-    <h3>Error fraction on a log axis</h3>
-    <p>e(t) = 1 − y/(K·A) = e<sup>−t/τ</sup>, so ln e(t) = −t/τ: a straight line with slope −1/τ</p>
-    <div id="plotLog"></div>
-  </div>
-
-  <h3>Validation checks</h3>
-  <table>
-    <thead>
-      <tr><th>Check</th><th>Expected</th><th>Your value</th><th>Result</th></tr>
-    </thead>
-    <tbody id="checkBody"></tbody>
-  </table>
 
   <script>
     let K = 1;
@@ -124,7 +265,7 @@
         out.push(stepResp(x, tau, A));
       }
 
-      const curve = { x: t, y: out, mode: 'lines', name: 'y(t)', line: { width: 3 } };
+      const curve = { x: t, y: out, mode: 'lines', name: 'y(t)', line: { width: 3, color: '#2d6cdf' } };
 
       const markers = {
         x: [tau, 3 * tau],
@@ -145,8 +286,8 @@
       const layout = {
         xaxis: { title: 't (s)', range: [0, TMAX] },
         yaxis: { title: 'y(t)', range: [0, 1.1 * K * A] },
-        margin: { t: 20 },
-        legend: { orientation: 'h' }
+        margin: { t: 40 },
+        legend: { orientation: 'h', y: 1.14 }
       };
 
       Plotly.react('plot', [final, curve, markers], layout, { responsive: true });
@@ -161,7 +302,7 @@
         out.push(rampResp(x, tau, A));
       }
 
-      const curve = { x: t, y: out, mode: 'lines', name: 'y(t) (sensor)', line: { width: 3 } };
+      const curve = { x: t, y: out, mode: 'lines', name: 'y(t) (sensor)', line: { width: 3, color: '#2d6cdf' } };
 
       // Ideal output: the sensor with no delay would follow K*A*t
       const ideal = {
@@ -180,25 +321,21 @@
 
       const lagLine = {
         x: [tIdeal, (tIdeal + t0) / 2, t0], y: [yv, yv, yv],
-        mode: 'lines+text', name: 'lag',
-        text: ['', 'lag = ' + lagVal.toFixed(1) + ' s', ''],
-        textposition: 'bottom center',
+        mode: 'lines', name: 'lag = ' + lagVal.toFixed(1) + ' s',
         line: { color: 'green', width: 3 }
       };
 
       const errLine = {
         x: [t0, t0, t0], y: [yv, (yv + yi) / 2, yi],
-        mode: 'lines+text', name: 'steady-state error',
-        text: ['', 'error = ' + errVal.toFixed(2), ''],
-        textposition: 'middle left',
+        mode: 'lines', name: 'steady-state error = ' + errVal.toFixed(2),
         line: { color: 'red', width: 3 }
       };
 
       const layout = {
         xaxis: { title: 't (s)', range: [0, TMAX] },
         yaxis: { title: 'y(t)', range: [0, 1.1 * K * A * TMAX] },
-        margin: { t: 20 },
-        legend: { orientation: 'h' }
+        margin: { t: 40 },
+        legend: { orientation: 'h', y: 1.14 }
       };
 
       Plotly.react('plot', [ideal, curve, lagLine, errLine], layout, { responsive: true });
@@ -213,7 +350,7 @@
         if (ef > 1e-6) { t.push(x); e.push(ef); }       // skip values too tiny for a log axis
       }
 
-      const line = { x: t, y: e, mode: 'lines', name: 'e(t)', line: { width: 3 } };
+      const line = { x: t, y: e, mode: 'lines', name: 'e(t)', line: { width: 3, color: '#6d4fd6' } };
 
       const mark = {
         x: [tau], y: [1 - stepResp(tau, tau, A) / (K * A)],
@@ -225,8 +362,8 @@
       const layout = {
         xaxis: { title: 't (s)', range: [0, TMAX] },
         yaxis: { title: 'e(t) (log scale)', type: 'log', range: [-4, 0.1] },
-        margin: { t: 20 },
-        legend: { orientation: 'h' }
+        margin: { t: 40 },
+        legend: { orientation: 'h', y: 1.14 }
       };
 
       Plotly.react('plotLog', [line, mark], layout, { responsive: true });
