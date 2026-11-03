@@ -290,7 +290,7 @@
         legend: { orientation: 'h', y: 1.14 }
       };
 
-      Plotly.react('plot', [final, curve, markers], layout, { responsive: true });
+      Plotly.react('plot', [final, curve, markers], layout, { responsive: true, displayModeBar: false });
     }
 
     function drawRamp(tau) {
@@ -338,7 +338,7 @@
         legend: { orientation: 'h', y: 1.14 }
       };
 
-      Plotly.react('plot', [ideal, curve, lagLine, errLine], layout, { responsive: true });
+      Plotly.react('plot', [ideal, curve, lagLine, errLine], layout, { responsive: true, displayModeBar: false });
     }
 
     function drawLog(tau) {
@@ -366,7 +366,7 @@
         legend: { orientation: 'h', y: 1.14 }
       };
 
-      Plotly.react('plotLog', [line, mark], layout, { responsive: true });
+      Plotly.react('plotLog', [line, mark], layout, { responsive: true, displayModeBar: false });
     }
 
     function updateChecks(mode, tau) {
