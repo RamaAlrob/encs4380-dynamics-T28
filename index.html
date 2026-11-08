@@ -291,7 +291,7 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 24px 0; }
 
   <div class="equation">
     <strong>Magnitude:</strong>
-    M(ω) = K / √(1 + (ωτ)²)
+     M(ω) = 1 / √(1 + (ωτ)²) &nbsp;(output amplitude = K·A·M)
     <br>
     <strong>Phase:</strong>
     φ(ω) = −tan<sup>−1</sup>(ωτ)
@@ -302,22 +302,27 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 24px 0; }
   <div class="grid">
     <div class="panel">
       <h3>Parameters</h3>
-      <div class="control">
-        <label for="m2K">Gain K</label>
+           <div class="control">
+        <label for="m2KSlider">Gain K</label>
+        <input id="m2KSlider" type="range" min="0.1" max="10" step="0.1" value="1">
         <input id="m2K" type="number" min="0.1" max="10" step="0.1" value="1">
       </div>
       <div class="control">
-        <label for="m2Tau">Time Constant τ (s)</label>
-        <input id="m2Tau" type="number" min="0.001" max="10" step="0.01" value="0.2">
+        <label for="m2TauSlider">Time Constant τ (s) <span class="muted">(log slider)</span></label>
+        <input id="m2TauSlider" type="range" min="0" max="1000" step="1" value="660">
+        <input id="m2Tau" type="number" min="0.0001" max="10" step="any" value="0.2">
       </div>
       <div class="control">
-        <label for="m2Omega">Input Angular Frequency ω (rad/s)</label>
-        <input id="m2Omega" type="number" min="0.01" max="1000" step="0.1" value="2">
+        <label for="m2OmegaSlider">Input Angular Frequency ω (rad/s) <span class="muted">(log slider)</span></label>
+        <input id="m2OmegaSlider" type="range" min="0" max="1000" step="1" value="460">
+        <input id="m2Omega" type="number" min="0.01" max="1000" step="any" value="2">
       </div>
       <div class="control">
-        <label for="m2A">Input Amplitude A</label>
+        <label for="m2ASlider">Input Amplitude A</label>
+        <input id="m2ASlider" type="range" min="0.1" max="10" step="0.1" value="1">
         <input id="m2A" type="number" min="0.1" max="10" step="0.1" value="1">
       </div>
+
       <button id="m2Update">Calculate Frequency Response</button>
     </div>
 
@@ -341,13 +346,13 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 24px 0; }
           <div class="value" id="m2Cutoff">5.00 rad/s</div>
         </div>
         <div class="metric">
-          <div class="muted">Dynamic Error δ = M/K − 1</div>
+          <div class="muted">Dynamic Error δ = M − 1</div>
           <div class="value" id="m2Error">-7.15%</div>
         </div>
       </div>
       <p class="muted">
-        The normalized dynamic error is M/K − 1. At the cutoff frequency,
-        the normalized magnitude is 1/√2 ≈ 0.707.
+        The dynamic error is δ = M − 1 (negative means the sensor reads low).
+        At the cutoff frequency, M = 1/√2 ≈ 0.707.
       </p>
     </div>
   </div>
@@ -735,7 +740,7 @@ document.getElementById("m1Check").addEventListener("click", () => {
 /* MODULE 2: FREQUENCY RESPONSE */
 function updateModule2() {
   const K = numberValue("m2K", 1, 0.1, 10);
-  const tau = numberValue("m2Tau", 0.2, 0.001, 10);
+  const tau = numberValue("m2Tau", 0.2, 0.0001, 10);
   const omega = numberValue("m2Omega", 2, 0.01, 1000);
   const A = numberValue("m2A", 1, 0.1, 10);
 
@@ -746,7 +751,7 @@ function updateModule2() {
   const outputAmplitude = A * magnitude;
   const error = (ratio - 1) * 100;
 
-  document.getElementById("m2Magnitude").textContent = fmt(magnitude, 4);
+  document.getElementById("m2Magnitude").textContent = fmt(ratio, 4);
   document.getElementById("m2Phase").textContent = fmt(-phase * 180 / Math.PI, 2) + "° lag";
   document.getElementById("m2OutputAmp").textContent = fmt(outputAmplitude, 4);
   document.getElementById("m2Cutoff").textContent = fmt(cutoff, 3) + " rad/s";
@@ -767,42 +772,66 @@ function updateModule2() {
     legend: { orientation: "h", y: -0.22 }
   });
 
+  // Bode range: 2 decades below and above the cutoff (and the current w)
+  const wLow = Math.min(cutoff, omega) / 100;
+  const wHigh = Math.max(cutoff, omega) * 100;
   const frequencies = Array.from({ length: 301 }, (_, i) =>
-    10 ** (-2 + i * 4 / 300)
+    wLow * (wHigh / wLow) ** (i / 300)
   );
   const magnitudeDb = frequencies.map(w =>
-    20 * Math.log10(K / Math.sqrt(1 + (w * tau) ** 2))
+    20 * Math.log10(1 / Math.sqrt(1 + (w * tau) ** 2))
   );
   const phaseDegrees = frequencies.map(w =>
     -Math.atan(w * tau) * 180 / Math.PI
   );
 
+  // values at the current input frequency (the moving dot)
+  const currentDb = 20 * Math.log10(ratio);
+  const currentPhaseDeg = phase * 180 / Math.PI;
+  const cutoffDb = 20 * Math.log10(1 / Math.SQRT2); // = -3.01 dB
+
   showPlot("m2BodeMag", [
     { x: frequencies, y: magnitudeDb, mode: "lines", name: "Magnitude" },
     {
-      x: [cutoff, cutoff], y: [Math.min(...magnitudeDb), 20 * Math.log10(K)],
-      mode: "lines", name: "Cutoff Frequency",
-      line: { dash: "dash" }
+      x: [cutoff, cutoff], y: [Math.min(...magnitudeDb), 0],
+      mode: "lines", name: "Cutoff line", line: { dash: "dash" }
+    },
+    {
+      x: [cutoff], y: [cutoffDb], mode: "markers+text",
+      name: "Cutoff (-3 dB)", text: ["-3 dB"], textposition: "top right",
+      marker: { size: 10, symbol: "diamond" }
+    },
+    {
+      x: [omega], y: [currentDb], mode: "markers",
+      name: "Current w", marker: { size: 12 }
     }
   ], {
     title: "Bode Magnitude Plot",
     xaxis: { title: "Angular Frequency ω (rad/s)", type: "log" },
     yaxis: { title: "Magnitude (dB)" },
-    legend: { orientation: "h", y: -0.22 }
+    legend: { orientation: "h", y: -0.3 }
   });
 
   showPlot("m2BodePhase", [
     { x: frequencies, y: phaseDegrees, mode: "lines", name: "Phase" },
     {
       x: [cutoff, cutoff], y: [-90, 0],
-      mode: "lines", name: "Cutoff Frequency",
-      line: { dash: "dash" }
+      mode: "lines", name: "Cutoff line", line: { dash: "dash" }
+    },
+    {
+      x: [cutoff], y: [-45], mode: "markers+text",
+      name: "Cutoff (-45°)", text: ["-45°"], textposition: "top right",
+      marker: { size: 10, symbol: "diamond" }
+    },
+    {
+      x: [omega], y: [currentPhaseDeg], mode: "markers",
+      name: "Current w", marker: { size: 12 }
     }
   ], {
     title: "Bode Phase Plot",
     xaxis: { title: "Angular Frequency ω (rad/s)", type: "log" },
     yaxis: { title: "Phase (degrees)", range: [-95, 5] },
-    legend: { orientation: "h", y: -0.22 }
+    legend: { orientation: "h", y: -0.3 }
   });
 }
 
@@ -821,6 +850,45 @@ document.getElementById("m2Design").addEventListener("click", () => {
     " ms</strong><br>Phase lag at 50 Hz: <strong>" +
     fmt(-phaseAt50, 2) + "°</strong>.";
 });
+
+/* MODULE 2: SLIDERS LINKED TO NUMBER BOXES */
+function linkSlider(sliderId, boxId, lo, hi, isLog) {
+  const slider = document.getElementById(sliderId);
+  const box = document.getElementById(boxId);
+
+  // move the slider to match the number in the box
+  function boxToSlider() {
+    const v = Math.min(hi, Math.max(lo, Number(box.value) || lo));
+    slider.value = isLog
+      ? (Math.log10(v) - Math.log10(lo)) / (Math.log10(hi) - Math.log10(lo)) * 1000
+      : v;
+  }
+
+  // slider moved -> update the box, then redraw
+  slider.addEventListener("input", () => {
+    if (isLog) {
+      const frac = slider.value / 1000;
+      const v = 10 ** (Math.log10(lo) + frac * (Math.log10(hi) - Math.log10(lo)));
+      box.value = Number(v.toPrecision(3));
+    } else {
+      box.value = slider.value;
+    }
+    updateModule2();
+  });
+
+  // number typed -> move the slider, then redraw
+  box.addEventListener("input", () => {
+    boxToSlider();
+    updateModule2();
+  });
+
+  boxToSlider();
+}
+
+linkSlider("m2KSlider", "m2K", 0.1, 10, false);
+linkSlider("m2TauSlider", "m2Tau", 0.0001, 10, true);
+linkSlider("m2OmegaSlider", "m2Omega", 0.01, 1000, true);
+linkSlider("m2ASlider", "m2A", 0.1, 10, false);
 
 /* MODULE 3: SECOND-ORDER RESPONSE */
 function secondOrderResponse(zeta, wn, K, t) {
