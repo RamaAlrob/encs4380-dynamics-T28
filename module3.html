@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Module 3 - Second-order response</title>
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<script defer src="module3-response.js"></script>
+<style>
+  :root {
+    --ink: #1f2a44; --muted: #5b6785; --blue: #2d6cdf; --blue-deep: #1d4fb3;
+    --violet: #6d4fd6; --card: #ffffff; --line: #dde3f4; --tint: #eaf1ff;
+  }
+  * { box-sizing: border-box; }
+  html { background: #e9e4fb; }
+  body {
+    margin: 0;
+    font-family: "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+    color: var(--ink); line-height: 1.5; min-height: 100vh;
+    background: linear-gradient(160deg, #dfe9ff 0%, #e9e4fb 55%, #f1e6fa 100%);
+  }
+  .page { max-width: 860px; margin: 0 auto; padding: 28px 16px 48px; }
+  .nav a { color: var(--blue-deep); font-weight: 600; text-decoration: none; margin-right: 16px; }
+  .nav a:hover { text-decoration: underline; }
+  .nav a.current { color: var(--ink); text-decoration: underline; }
+
+  .hero { margin: 14px 0 22px; }
+  .hero h1 {
+    margin: 0 0 10px; font-size: clamp(2rem, 6.5vw, 3.2rem); line-height: 1.05;
+    letter-spacing: -0.02em; font-weight: 800;
+    background: linear-gradient(90deg, var(--blue-deep), var(--violet));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .hero p { margin: 0; color: var(--muted); max-width: 60ch; }
+  .model {
+    display: inline-block; margin-top: 14px; padding: 6px 14px; border-radius: 999px;
+    background: rgba(255,255,255,0.75); border: 1px solid var(--line);
+    font-family: "Cambria Math", "STIX Two Math", Georgia, serif; font-size: 1.1rem;
+  }
+
+  .card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+    padding: 18px 20px; margin: 0 0 18px; box-shadow: 0 6px 20px rgba(60,70,140,0.08);
+  }
+  .card h2 { margin: 0 0 4px; font-size: 1.1rem; }
+  .hint { margin: 0 0 10px; color: var(--muted); font-size: 0.92rem; }
+
+  .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .control label { display: block; font-weight: 600; margin-bottom: 6px; }
+  .control input[type=range] { width: 100%; accent-color: var(--blue); }
+  :focus-visible { outline: 3px solid #9db8f2; outline-offset: 2px; }
+
+  .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+  .metric { background: var(--tint); border-radius: 10px; padding: 10px 12px; }
+  .metric .name { color: var(--muted); font-size: 0.88rem; }
+  .metric .value { color: var(--blue-deep); font-size: 1.3rem; font-weight: 700; overflow-wrap: anywhere; }
+
+  .plot { width: 100%; height: 340px; }
+  button {
+    font: inherit; font-weight: 600; padding: 8px 16px; border-radius: 8px;
+    border: 2px solid var(--blue); background: var(--blue); color: #fff; cursor: pointer;
+  }
+  button:hover { background: var(--blue-deep); border-color: var(--blue-deep); }
+  @media (max-width: 640px) {
+    .page { padding: 18px 12px 36px; }
+    .card { padding: 14px; }
+    .controls { grid-template-columns: 1fr; gap: 14px; }
+    .plot { height: 300px; }
+  }
+  .presets { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+  .matrices { display: flex; flex-wrap: wrap; gap: 18px; align-items: center; }
+  .matrices pre { margin: 0; font-size: 0.95rem; }
+  fieldset { border: 0; padding: 0; margin: 0; }
+  fieldset label { display: block; margin: 8px 0; }
+  table { border-collapse: collapse; width: 100%; font-size: 0.88rem; }
+  th, td { padding: 6px; border-bottom: 1px solid var(--line); text-align: left; }
+  #prediction-result { margin-bottom: 0; }
+</style>
+</head>
+<body>
+<main class="page">
+  <nav class="nav" aria-label="Toolkit modules">
+    <a href="index.html">Module 1</a>
+    <a href="module2.html">Module 2</a>
+    <a href="module3.html" class="current" aria-current="page">Module 3</a>
+  </nav>
+
+  <header class="hero">
+    <h1>Second-order response</h1>
+    <p>Apply a step force to a mass on a spring. Change the mass, damping, or stiffness to see how the motion and poles change together.</p>
+    <div class="model">m·ẍ + b·ẋ + k·x = F(t)</div>
+  </header>
+
+  <section class="card">
+    <h2>Controls</h2>
+    <p class="hint">The mass starts at rest. The applied force steps to k newtons, so the final displacement is 1 m.</p>
+    <div class="controls">
+      <div class="control">
+        <label for="mass">Mass m = <output id="mass-value">1</output> kg</label>
+        <input id="mass" type="range" min="0.25" max="3" step="0.05" value="1">
+      </div>
+      <div class="control">
+        <label for="damping">Damping b = <output id="damping-value">2</output> N·s/m</label>
+        <input id="damping" type="range" min="0.1" max="20" step="0.1" value="2">
+      </div>
+      <div class="control">
+        <label for="stiffness">Stiffness k = <output id="stiffness-value">4</output> N/m</label>
+        <input id="stiffness" type="range" min="0.25" max="12" step="0.05" value="4">
+      </div>
+    </div>
+    <div class="presets" aria-label="Damping examples">
+      <button type="button" data-damping="2">Underdamped</button>
+      <button type="button" data-damping="4">Critically damped</button>
+      <button type="button" data-damping="8">Overdamped</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Predict, then check</h2>
+    <form id="prediction">
+      <fieldset>
+        <legend>With m = 1 kg and k = 4 N/m, what happens to overshoot when b rises from 2 to 4 N·s/m?</legend>
+        <label><input type="radio" name="answer" value="increases" required> It increases</label>
+        <label><input type="radio" name="answer" value="same"> It stays the same</label>
+        <label><input type="radio" name="answer" value="zero"> It drops to zero</label>
+      </fieldset>
+      <button>Check my prediction</button>
+      <p id="prediction-result" role="status"></p>
+    </form>
+  </section>
+
+  <section class="card">
+    <h2>Step response</h2>
+    <p id="regime" class="hint"></p>
+    <div class="metrics">
+      <div class="metric"><div class="name">Rise time (10–90%)</div><div class="value" id="rise"></div></div>
+      <div class="metric"><div class="name">First peak time</div><div class="value" id="peak"></div></div>
+      <div class="metric"><div class="name">Overshoot</div><div class="value" id="overshoot"></div></div>
+      <div class="metric"><div class="name">Settling time (±2%)</div><div class="value" id="settling"></div></div>
+    </div>
+    <div id="step-plot" class="plot"></div>
+  </section>
+
+  <section class="card">
+    <h2>State space and poles</h2>
+    <p class="hint">x₁ is displacement and x₂ is velocity. The state equation is ẋ = Ax + BF, and the output is y = Cx + DF.</p>
+    <div class="matrices">
+      <pre id="matrix-a"></pre>
+      <pre id="matrix-b"></pre>
+      <pre>C = [1  0]
+D = 0</pre>
+    </div>
+    <p id="eigenvalues"></p>
+    <div id="pole-plot" class="plot"></div>
+    <h3>Phase plane</h3>
+    <p class="hint">Follow the path from rest at (0, 0) to equilibrium at (1, 0).</p>
+    <div id="phase-plot" class="plot"></div>
+  </section>
+
+  <section class="card">
+    <h2>Validation checks</h2>
+    <p class="hint">Fixed reference cases from the homework.</p>
+    <table>
+      <thead><tr><th scope="col">Check</th><th scope="col">Expected</th><th scope="col">Computed</th><th scope="col">Result</th></tr></thead>
+      <tbody id="validation"></tbody>
+    </table>
+  </section>
+</main>
+</body>
+</html>

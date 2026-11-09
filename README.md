@@ -19,7 +19,7 @@ Birzeit University, ENCS4380 Interfacing Techniques (Dr. Wasel Ghanem)
 
 - [x] Module 1: First-order time response
 - [ ] Module 2: First-order frequency response
-- [ ] Module 3: Second-order response + state-space panel
+- [x] Module 3: Second-order response + state-space panel
 - [ ] Module 4: Guess the sensor
 
 ---
@@ -96,6 +96,18 @@ The lecture checks 2 to 6 will be added with Modules 2 and 3.
 5. The log plot turns a curve into a line. Taking ln of e^(−t/τ) gives −t/τ, so the slope is −1/τ and τ can be measured from the slope alone, without knowing the final value precisely. A steep line means a small τ (fast sensor), a shallow line means a large τ (slow sensor).
 6. Validation is how we trust the code. We code the formula and then check it against the known numbers from the lecture (63.2%, 95%, lag = τ, error = K·A·τ).
 
+## Module 3: Second-order response and state space
+
+Open [Module 3](module3.html) from the toolkit navigation. Adjust mass, damping,
+and stiffness, or select a damping preset. The mass starts from rest and the
+force steps to k newtons, giving a final displacement of 1 m. The same model
+drives the step plot, pole plot, and displacement–velocity phase plane.
+
+The step plot marks the first 10% and 90% crossings, the first peak when one
+exists, and the final entry into the ±2% settling band. The state-space panel
+shows the live matrices and compares the eigenvalues of A with the poles.
+The validation table covers homework checks 4–6.
+
 ## How to run
 
 Open the live page link above, or open index.html in a browser (an internet connection is needed to load Plotly from the CDN).
@@ -103,6 +115,9 @@ Open the live page link above, or open index.html in a browser (an internet conn
 ## AI use
 
 An AI assistant (Claude) was used while building this module: to explain the maths step by step, to write and review the code with us, and to build the headless test that checked all validation rows.
+
+Codex helped implement Module 3 and check its response formulas, metrics, and
+state-space eigenvalues against the homework examples.
 
 ## Screenshots
 
