@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Module 2 - First-order frequency response</title>
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<style>
+  :root {
+    --ink: #1f2a44; --muted: #5b6785; --blue: #2d6cdf; --blue-deep: #1d4fb3;
+    --violet: #6d4fd6; --card: #ffffff; --line: #dde3f4; --tint: #eaf1ff;
+  }
+  * { box-sizing: border-box; }
+  html { background: #e9e4fb; }
+  body {
+    margin: 0;
+    font-family: "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+    color: var(--ink); line-height: 1.5; min-height: 100vh;
+    background: linear-gradient(160deg, #dfe9ff 0%, #e9e4fb 55%, #f1e6fa 100%);
+  }
+  .page { max-width: 860px; margin: 0 auto; padding: 28px 16px 48px; }
+  .nav a { color: var(--blue-deep); font-weight: 600; text-decoration: none; margin-right: 16px; }
+  .nav a:hover { text-decoration: underline; }
+  .nav a.current { color: var(--ink); text-decoration: underline; }
+
+  .hero { margin: 14px 0 22px; }
+  .hero h1 {
+    margin: 0 0 10px; font-size: clamp(2rem, 6.5vw, 3.2rem); line-height: 1.05;
+    letter-spacing: -0.02em; font-weight: 800;
+    background: linear-gradient(90deg, var(--blue-deep), var(--violet));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .hero p { margin: 0; color: var(--muted); max-width: 60ch; }
+  .model {
+    display: inline-block; margin-top: 14px; padding: 6px 14px; border-radius: 999px;
+    background: rgba(255,255,255,0.75); border: 1px solid var(--line);
+    font-family: "Cambria Math", "STIX Two Math", Georgia, serif; font-size: 1.1rem;
+  }
+
+  .card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+    padding: 18px 20px; margin: 0 0 18px; box-shadow: 0 6px 20px rgba(60,70,140,0.08);
+  }
+  .card h2 { margin: 0 0 4px; font-size: 1.1rem; }
+  .hint { margin: 0 0 10px; color: var(--muted); font-size: 0.92rem; }
+
+  .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .control label { display: block; font-weight: 600; margin-bottom: 6px; }
+  .control input[type=range] { width: 100%; accent-color: var(--blue); }
+  .control input[type=number] {
+    width: 100%; font: inherit; padding: 7px 10px; margin-top: 4px;
+    border: 1px solid var(--line); border-radius: 8px; background: #fff; color: var(--ink);
+  }
+  :focus-visible { outline: 3px solid #9db8f2; outline-offset: 2px; }
+
+  .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+  .metric { background: var(--tint); border-radius: 10px; padding: 10px 12px; }
+  .metric .name { color: var(--muted); font-size: 0.88rem; }
+  .metric .value { color: var(--blue-deep); font-size: 1.3rem; font-weight: 700; overflow-wrap: anywhere; }
+
+  .plot { width: 100%; height: 340px; }
+  button {
+    font: inherit; font-weight: 600; padding: 8px 16px; border-radius: 8px;
+    border: 2px solid var(--blue); background: var(--blue); color: #fff; cursor: pointer;
+  }
+  button:hover { background: var(--blue-deep); border-color: var(--blue-deep); }
+  .result { margin-top: 12px; padding: 10px 12px; border-radius: 8px; background: var(--tint); }
+  .result:empty { display: none; }
+
+  @media (max-width: 640px) {
+    .page { padding: 18px 12px 36px; }
+    .card { padding: 14px; }
+    .controls { grid-template-columns: 1fr; gap: 14px; }
+    .plot { height: 300px; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <nav class="nav">
+    <a href="index.html">Module 1</a>
+    <a href="module2.html" class="current">Module 2</a>
+  </nav>
+
+  <header class="hero">
+    <h1>First-order frequency response</h1>
+    <p>Feed the sensor a sine wave. It answers with the same frequency, but smaller and late. Move τ and ω to see by how much.</p>
+    <div class="model">M = 1 / √(1 + (ωτ)²) &nbsp; φ = −tan⁻¹(ωτ)</div>
+  </header>
+
+  <section class="card">
+    <h2>Controls</h2>
+    <p class="hint">Use a slider, or type an exact value in the box. τ and ω sliders are logarithmic.</p>
+    <div class="controls">
+      <div class="control">
+        <label for="m2KSlider">Gain K</label>
+        <input id="m2KSlider" type="range" min="0.1" max="10" step="0.1" value="1">
+        <input id="m2K" type="number" min="0.1" max="10" step="0.1" value="1">
+      </div>
+      <div class="control">
+        <label for="m2TauSlider">Time constant τ (s)</label>
+        <input id="m2TauSlider" type="range" min="0" max="1000" step="1" value="660">
+        <input id="m2Tau" type="number" min="0.0001" max="10" step="any" value="0.2">
+      </div>
+      <div class="control">
+        <label for="m2OmegaSlider">Input frequency ω (rad/s)</label>
+        <input id="m2OmegaSlider" type="range" min="0" max="1000" step="1" value="460">
+        <input id="m2Omega" type="number" min="0.01" max="1000" step="any" value="2">
+      </div>
+      <div class="control">
+        <label for="m2ASlider">Input amplitude A</label>
+        <input id="m2ASlider" type="range" min="0.1" max="10" step="0.1" value="1">
+        <input id="m2A" type="number" min="0.1" max="10" step="0.1" value="1">
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Calculated results</h2>
+    <p class="hint">Dynamic error δ = M − 1. A negative value means the sensor reads low. At the cutoff ω = 1/τ, M = 1/√2 ≈ 0.707.</p>
+    <div class="metrics">
+      <div class="metric"><div class="name">Magnitude ratio M</div><div class="value" id="m2Magnitude">—</div></div>
+      <div class="metric"><div class="name">Phase lag</div><div class="value" id="m2Phase">—</div></div>
+      <div class="metric"><div class="name">Output amplitude K·A·M</div><div class="value" id="m2OutputAmp">—</div></div>
+      <div class="metric"><div class="name">Cutoff frequency</div><div class="value" id="m2Cutoff">—</div></div>
+      <div class="metric"><div class="name">Dynamic error δ = M − 1</div><div class="value" id="m2Error">—</div></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Input and output sinusoids</h2>
+    <div id="m2Signals" class="plot"></div>
+  </section>
+
+  <section class="card">
+    <h2>Bode plots</h2>
+    <p class="hint">The red dot is the current ω. The diamond marks the cutoff at ω = 1/τ.</p>
+    <div id="m2BodeMag" class="plot"></div>
+    <div id="m2BodePhase" class="plot"></div>
+  </section>
+
+  <section class="card">
+    <h2>Design check: maximum time constant</h2>
+    <p class="hint">Find the largest τ that keeps the amplitude error within 5% at 100 Hz: τ ≤ √(1/0.95² − 1) / (2πf).</p>
+    <button id="m2Design">Calculate design limit</button>
+    <div id="m2DesignResult" class="result" aria-live="polite"></div>
+  </section>
+
+</div>
+
+<script>
+"use strict";
+
+/* HELPERS */
+function numberValue(id, fallback, min, max) {
+  const raw = document.getElementById(id).value;
+  const n = Number(raw);
+  if (raw.trim() === "" || !Number.isFinite(n)) return fallback;
+  return Math.min(max, Math.max(min, n));
+}
+function fmt(value, digits = 3) {
+  return Number.isFinite(value) ? value.toFixed(digits) : "—";
+}
+function makeTime(end, count) {
+  return Array.from({ length: count }, (_, i) => end * i / (count - 1));
+}
+function showPlot(id, data, layout) {
+  Plotly.react(id, data, {
+    paper_bgcolor: "white", plot_bgcolor: "white",
+    font: { color: "#1f2a44" },
+    margin: { t: 45, r: 20, b: 70, l: 60 },
+    ...layout
+  }, { responsive: true, displayModeBar: false });
+}
+
+/* MODULE 2: FREQUENCY RESPONSE */
+function updateModule2() {
+  const K = numberValue("m2K", 1, 0.1, 10);
+  const tau = numberValue("m2Tau", 0.2, 0.0001, 10);
+  const omega = numberValue("m2Omega", 2, 0.01, 1000);
+  const A = numberValue("m2A", 1, 0.1, 10);
+
+  const ratio = 1 / Math.sqrt(1 + (omega * tau) ** 2);   // M
+  const magnitude = K * ratio;                            // K times M
+  const phase = -Math.atan(omega * tau);                  // phi, in radians
+  const cutoff = 1 / tau;
+  const outputAmplitude = A * magnitude;
+  const error = (ratio - 1) * 100;
+
+  document.getElementById("m2Magnitude").textContent = fmt(ratio, 4);
+  document.getElementById("m2Phase").textContent = fmt(-phase * 180 / Math.PI, 2) + "° lag";
+  document.getElementById("m2OutputAmp").textContent = fmt(outputAmplitude, 4);
+  document.getElementById("m2Cutoff").textContent = fmt(cutoff, 3) + " rad/s";
+  document.getElementById("m2Error").textContent = fmt(error, 2) + "%";
+
+  const tEnd = 4 * 2 * Math.PI / omega;   // show 4 periods
+  const t = makeTime(tEnd, 500);
+  const input = t.map(time => A * Math.sin(omega * time));
+  const output = t.map(time => outputAmplitude * Math.sin(omega * time + phase));
+
+  showPlot("m2Signals", [
+    { x: t, y: input, mode: "lines", name: "Input", line: { width: 2, color: "#8a93ab" } },
+    { x: t, y: output, mode: "lines", name: "Output", line: { width: 3, color: "#2d6cdf" } }
+  ], {
+    xaxis: { title: "Time (s)" },
+    yaxis: { title: "Amplitude" },
+    legend: { orientation: "h", y: -0.3 }
+  });
+
+  // Bode range: 2 decades below and above the cutoff (and the current w)
+  const wLow = Math.min(cutoff, omega) / 100;
+  const wHigh = Math.max(cutoff, omega) * 100;
+  const frequencies = Array.from({ length: 301 }, (_, i) =>
+    wLow * (wHigh / wLow) ** (i / 300)
+  );
+  const magnitudeDb = frequencies.map(w =>
+    20 * Math.log10(1 / Math.sqrt(1 + (w * tau) ** 2))
+  );
+  const phaseDegrees = frequencies.map(w =>
+    -Math.atan(w * tau) * 180 / Math.PI
+  );
+
+  // values at the current input frequency (the moving dot)
+  const currentDb = 20 * Math.log10(ratio);
+  const currentPhaseDeg = phase * 180 / Math.PI;
+  const cutoffDb = 20 * Math.log10(1 / Math.SQRT2);   // = -3.01 dB
+
+  showPlot("m2BodeMag", [
+    { x: frequencies, y: magnitudeDb, mode: "lines", name: "Magnitude", line: { color: "#2d6cdf" } },
+    { x: [cutoff, cutoff], y: [Math.min(...magnitudeDb), 0],
+      mode: "lines", name: "Cutoff line", line: { dash: "dash", color: "gray" } },
+    { x: [cutoff], y: [cutoffDb], mode: "markers+text", name: "Cutoff (-3 dB)",
+      text: ["-3 dB"], textposition: "top right", marker: { size: 10, symbol: "diamond", color: "#0a7d2c" } },
+    { x: [omega], y: [currentDb], mode: "markers", name: "Current ω",
+      marker: { size: 12, color: "#d62728" } }
+  ], {
+    xaxis: { title: "Angular frequency ω (rad/s)", type: "log" },
+    yaxis: { title: "Magnitude (dB)" },
+    legend: { orientation: "h", y: -0.35 }
+  });
+
+  showPlot("m2BodePhase", [
+    { x: frequencies, y: phaseDegrees, mode: "lines", name: "Phase", line: { color: "#6d4fd6" } },
+    { x: [cutoff, cutoff], y: [-90, 0],
+      mode: "lines", name: "Cutoff line", line: { dash: "dash", color: "gray" } },
+    { x: [cutoff], y: [-45], mode: "markers+text", name: "Cutoff (-45°)",
+      text: ["-45°"], textposition: "top right", marker: { size: 10, symbol: "diamond", color: "#0a7d2c" } },
+    { x: [omega], y: [currentPhaseDeg], mode: "markers", name: "Current ω",
+      marker: { size: 12, color: "#d62728" } }
+  ], {
+    xaxis: { title: "Angular frequency ω (rad/s)", type: "log" },
+    yaxis: { title: "Phase (degrees)", range: [-95, 5] },
+    legend: { orientation: "h", y: -0.35 }
+  });
+}
+
+/* DESIGN CHECK (100 Hz, 5% error) */
+document.getElementById("m2Design").addEventListener("click", () => {
+  const f = 100;
+  const allowedRatio = 0.95;
+  const tauMax = Math.sqrt(1 / allowedRatio ** 2 - 1) / (2 * Math.PI * f);
+  const phaseAt50 = -Math.atan(2 * Math.PI * 50 * tauMax) * 180 / Math.PI;
+  document.getElementById("m2DesignResult").innerHTML =
+    "Maximum τ: <strong>" + fmt(tauMax * 1000, 3) +
+    " ms</strong><br>Phase lag at 50 Hz: <strong>" + fmt(-phaseAt50, 2) + "°</strong>";
+});
+
+/* SLIDERS LINKED TO NUMBER BOXES */
+function linkSlider(sliderId, boxId, lo, hi, isLog) {
+  const slider = document.getElementById(sliderId);
+  const box = document.getElementById(boxId);
+
+  // move the slider to match the number in the box
+  function boxToSlider() {
+    const v = Math.min(hi, Math.max(lo, Number(box.value) || lo));
+    slider.value = isLog
+      ? (Math.log10(v) - Math.log10(lo)) / (Math.log10(hi) - Math.log10(lo)) * 1000
+      : v;
+  }
+
+  // slider moved -> update the box, then redraw
+  slider.addEventListener("input", () => {
+    if (isLog) {
+      const frac = slider.value / 1000;
+      const v = 10 ** (Math.log10(lo) + frac * (Math.log10(hi) - Math.log10(lo)));
+      box.value = Number(v.toPrecision(3));
+    } else {
+      box.value = slider.value;
+    }
+    updateModule2();
+  });
+
+  // number typed -> move the slider, then redraw
+  box.addEventListener("input", () => {
+    boxToSlider();
+    updateModule2();
+  });
+
+  boxToSlider();
+}
+
+linkSlider("m2KSlider", "m2K", 0.1, 10, false);
+linkSlider("m2TauSlider", "m2Tau", 0.0001, 10, true);
+linkSlider("m2OmegaSlider", "m2Omega", 0.01, 1000, true);
+linkSlider("m2ASlider", "m2A", 0.1, 10, false);
+
+updateModule2();   // first draw
+</script>
+</body>
+</html>
