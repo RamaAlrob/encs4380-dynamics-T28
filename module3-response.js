@@ -1,57 +1,5 @@
 "use strict";
 
-function roots(halfDamping, discriminant, frequencySquared) {
-  if (discriminant < 0) {
-    const imaginary = Math.sqrt(-discriminant);
-    return [[-halfDamping, imaginary], [-halfDamping, -imaginary]];
-  }
-
-  const fast = -halfDamping - Math.sqrt(discriminant);
-  return [[frequencySquared / fast, 0], [fast, 0]];
-}
-
-function makeModel(m, b, k) {
-  const omega = Math.sqrt(k / m);
-  const zeta = b / (2 * Math.sqrt(k * m));
-  const regime = Math.abs(zeta - 1) < 1e-12 ? "critical" : zeta < 1 ? "under" : "over";
-  const halfDamping = b / (2 * m);
-  const discriminant = regime === "critical" ? 0 : halfDamping ** 2 - omega ** 2;
-  const poles = roots(halfDamping, discriminant, omega ** 2);
-  const A = [[0, 1], [-k / m, -b / m]];
-  const B = [0, 1 / m];
-  const halfTrace = (A[0][0] + A[1][1]) / 2;
-  const determinant = A[0][0] * A[1][1] - A[0][1] * A[1][0];
-  const eigenDiscriminant = halfTrace ** 2 - determinant;
-  const eigenvalues = roots(-halfTrace, regime === "critical" ? 0 : eigenDiscriminant, determinant);
-  return { omega, zeta, regime, poles, eigenvalues, A, B };
-}
-
-// Closed-form displacement and velocity for a force step F = k, from rest.
-function stepState(model, t) {
-  const { omega, zeta, regime, poles } = model;
-  const decay = zeta * omega;
-  if (regime === "critical") {
-    const envelope = Math.exp(-omega * t);
-    return [1 - envelope * (1 + omega * t), omega ** 2 * t * envelope];
-  }
-  if (regime === "under") {
-    const dampedOmega = poles[0][1];
-    const envelope = Math.exp(-decay * t);
-    const sine = Math.sin(dampedOmega * t) / dampedOmega;
-    return [1 - envelope * (Math.cos(dampedOmega * t) + decay * sine),
-      omega ** 2 * envelope * sine];
-  }
-
-  const slow = poles[0][0];
-  const fast = poles[1][0];
-  const slowEnvelope = Math.exp(slow * t);
-  const fastEnvelope = Math.exp(fast * t);
-  return [
-    1 - (slow * fastEnvelope - fast * slowEnvelope) / (slow - fast),
-    omega ** 2 * (slowEnvelope - fastEnvelope) / (slow - fast)
-  ];
-}
-
 function response(model) {
   const peak = model.regime === "under" ? Math.PI / model.poles[0][1] : null;
   const end = Math.max(-8 / model.poles[0][0], peak ?? 0);
@@ -94,20 +42,6 @@ const pair = values => {
   if (real === secondReal) return format(real) + " (double)";
   return values.map(value => format(value[0])).join(", ");
 };
-
-function plot(id, traces, xTitle, yTitle, extras = {}) {
-  Plotly.react(id, traces, {
-    margin: { l: 65, r: 16, t: 16, b: 58 },
-    xaxis: { title: xTitle, automargin: true },
-    yaxis: { title: yTitle, automargin: true },
-    showlegend: false,
-    ...extras
-  }, { responsive: true, displayModeBar: false });
-}
-
-function line(x, y) {
-  return { x, y, type: "scatter", mode: "lines", line: { color: "#2d6cdf", width: 3 } };
-}
 
 function markers(x, y, labels) {
   return { x, y, text: labels, type: "scatter", mode: "markers",

@@ -148,6 +148,7 @@
       th, td { padding: 8px 8px; }
     }
   </style>
+<script src="sensor-response.js"></script>
 </head>
 <body>
   <div class="page">
@@ -156,6 +157,7 @@
       <a href="index.html" aria-current="page">Module 1</a>
       <a href="module2.html">Module 2</a>
       <a href="module3.html">Module 3</a>
+      <a href="module4.html">Module 4</a>
     </nav>
 
     <header class="hero">
@@ -235,7 +237,7 @@
 
     // Closed-form responses
     function stepResp(t, tau, A) {
-      return K * A * (1 - Math.exp(-t / tau));
+      return firstOrderStep(t, tau, K, A);
     }
     function rampResp(t, tau, A) {
       return K * A * (t - tau + tau * Math.exp(-t / tau));
