@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Module 4 - Guess the sensor</title>
+<script defer src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<script defer src="sensor-response.js"></script>
+<script defer src="response-plot.js"></script>
+<script defer src="module4-challenge.js"></script>
+<style>
+  :root {
+    --ink: #1f2a44; --muted: #5b6785; --blue: #2d6cdf; --blue-deep: #1d4fb3;
+    --violet: #6d4fd6; --line: #dde3f4; --tint: #eaf1ff;
+  }
+  * { box-sizing: border-box; }
+  html { background: #e9e4fb; }
+  body {
+    margin: 0; color: var(--ink); min-height: 100vh;
+    font: 1rem/1.5 "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+    background: linear-gradient(160deg, #dfe9ff 0%, #e9e4fb 55%, #f1e6fa 100%);
+  }
+  main { max-width: 860px; margin: auto; padding: 28px 16px 48px; }
+  nav { display: flex; flex-wrap: wrap; gap: 8px 16px; }
+  nav a { color: var(--blue-deep); font-weight: 600; text-decoration: none; }
+  nav a:hover, nav a[aria-current] { text-decoration: underline; }
+  nav a[aria-current] { color: var(--ink); }
+  header { margin: 16px 0 22px; }
+  h1 {
+    margin: 0 0 10px; font-size: clamp(2rem, 6.5vw, 3.2rem); line-height: 1.05;
+    letter-spacing: -0.02em; font-weight: 800;
+    background: linear-gradient(90deg, var(--blue-deep), var(--violet));
+    background-clip: text; color: transparent;
+  }
+  p { margin: 0; }
+  header p, .hint { color: var(--muted); }
+  .card {
+    background: white; border: 1px solid var(--line); border-radius: 14px;
+    padding: 18px 20px; margin-bottom: 18px; box-shadow: 0 6px 20px rgba(60,70,140,0.08);
+  }
+  h2 { margin: 0 0 4px; font-size: 1.1rem; }
+  .toolbar, .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+  .toolbar { justify-content: space-between; margin-bottom: 16px; }
+  #response-plot { width: 100%; height: 340px; }
+  .estimates { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 12px 0; }
+  label { display: block; font-weight: 600; margin-bottom: 4px; }
+  input, button { font: inherit; border-radius: 8px; min-height: 44px; }
+  input { width: 100%; padding: 8px 10px; border: 1px solid var(--muted); color: var(--ink); }
+  button { padding: 8px 14px; border: 1px solid var(--blue); background: var(--blue); color: white; font-weight: 600; cursor: pointer; }
+  button:not(:disabled):hover { background: var(--blue-deep); color: white; }
+  button.secondary { background: var(--tint); color: var(--blue-deep); }
+  button:disabled { opacity: 0.65; cursor: default; }
+  :focus-visible { outline: 3px solid #9db8f2; outline-offset: 2px; }
+  #hint, #result:not(:empty) { background: var(--tint); padding: 10px 12px; border-radius: 8px; margin-top: 12px; }
+  #result ul { margin: 6px 0 0; padding-left: 22px; }
+  @media (max-width: 540px) {
+    main { padding: 18px 12px 36px; }
+    .card { padding: 14px; }
+    .estimates { grid-template-columns: 1fr; }
+    #response-plot { height: 300px; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <nav aria-label="Toolkit modules">
+    <a href="index.html">Module 1</a>
+    <a href="module2.html">Module 2</a>
+    <a href="module3.html">Module 3</a>
+    <a href="module4.html" aria-current="page">Module 4</a>
+  </nav>
+  <header>
+    <h1>Guess the sensor</h1>
+    <p>Read the noisy response and estimate the sensor parameters.</p>
+  </header>
+
+  <section class="card" aria-labelledby="round-title">
+    <div class="toolbar">
+      <strong id="score">Session score: 0 / 0</strong>
+      <button id="new-sensor" type="button" class="secondary">New sensor</button>
+    </div>
+    <h2 id="round-title" aria-live="polite"></h2>
+    <p id="input-description" class="hint"></p>
+    <div id="response-plot"></div>
+  </section>
+
+  <section class="card">
+    <h2>Predict, then check</h2>
+    <p class="hint">Earn 1 point when every estimate is within 10% of its true value.</p>
+    <form id="guess">
+      <div class="estimates">
+        <div id="tau-field">
+          <label for="tau">Time constant τ (s)</label>
+          <input id="tau" type="number" min="0" step="any" inputmode="decimal" required>
+        </div>
+        <div id="zeta-field" hidden>
+          <label for="zeta">Damping ratio ζ</label>
+          <input id="zeta" type="number" min="0" step="any" inputmode="decimal" required disabled>
+        </div>
+        <div id="omega-field" hidden>
+          <label for="omega">Natural frequency ωₙ (rad/s)</label>
+          <input id="omega" type="number" min="0" step="any" inputmode="decimal" required disabled>
+        </div>
+      </div>
+      <div class="actions">
+        <button id="check-guess" type="submit">Check my estimate</button>
+        <button id="show-hint" type="button" class="secondary" aria-controls="hint" aria-expanded="false">Show hint</button>
+      </div>
+      <p id="hint" hidden></p>
+    </form>
+    <div id="result" role="status"></div>
+  </section>
+</main>
+</body>
+</html>

@@ -20,7 +20,7 @@ Birzeit University, ENCS4380 Interfacing Techniques (Dr. Wasel Ghanem)
 - [x] Module 1: First-order time response
 - [ ] Module 2: First-order frequency response
 - [x] Module 3: Second-order response + state-space panel
-- [ ] Module 4: Guess the sensor
+- [x] Module 4: Guess the sensor
 
 ---
 
@@ -112,12 +112,21 @@ The validation table covers homework checks 4–6.
 
 Open the live page link above, or open index.html in a browser (an internet connection is needed to load Plotly from the CDN).
 
+## Module 4: Guess the sensor
+
+Open [Module 4](module4.html) from any toolkit page. Estimate τ from a noisy
+first-order step or sine, or estimate ζ and ωₙ from an underdamped step. An
+optional hint suggests a way to read the plot. Submitting shows the true values
+and overlays the clean curve. Each completed round earns one point if all
+estimates are within 10%. The score follows the current browser tab session.
+
 ## AI use
 
 An AI assistant (Claude) was used while building this module: to explain the maths step by step, to write and review the code with us, and to build the headless test that checked all validation rows.
 
 Codex helped implement Module 3 and check its response formulas, metrics, and
-state-space eigenvalues against the homework examples.
+state-space eigenvalues against the homework examples. Codex also implemented
+Module 4 and checked its rounds, scoring, and phone layout.
 
 ## Screenshots
 

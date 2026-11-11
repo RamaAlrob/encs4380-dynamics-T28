@@ -74,6 +74,7 @@
     .plot { height: 300px; }
   }
 </style>
+<script src="sensor-response.js"></script>
 </head>
 <body>
 <div class="page">
@@ -82,6 +83,7 @@
     <a href="index.html">Module 1</a>
     <a href="module2.html" class="current">Module 2</a>
     <a href="module3.html">Module 3</a>
+    <a href="module4.html">Module 4</a>
   </nav>
 
   <header class="hero">
@@ -182,9 +184,8 @@ function updateModule2() {
   const omega = numberValue("m2Omega", 2, 0.01, 1000);
   const A = numberValue("m2A", 1, 0.1, 10);
 
-  const ratio = 1 / Math.sqrt(1 + (omega * tau) ** 2);   // M
-  const magnitude = K * ratio;                            // K times M
-  const phase = -Math.atan(omega * tau);                  // phi, in radians
+  const { ratio, phase } = firstOrderFrequency(tau, omega);
+  const magnitude = K * ratio;
   const cutoff = 1 / tau;
   const outputAmplitude = A * magnitude;
   const error = (ratio - 1) * 100;
