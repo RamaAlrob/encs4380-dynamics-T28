@@ -32,8 +32,7 @@
 
   function newRound() {
     if (Math.random() < 0.5) {
-      const tau = randomBetween(0.6, 1.8);
-      const gain = randomBetween(0.8, 1.6);
+      const { tau, k: gain } = randomFirstOrderPlant();
       if (Math.random() < 1 / 3) {
         const inputOmega = 1;
         const { ratio, phase } = firstOrderFrequency(tau, inputOmega);

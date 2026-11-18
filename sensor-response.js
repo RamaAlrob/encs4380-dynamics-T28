@@ -62,3 +62,8 @@ function stepState(model, t) {
     omega ** 2 * (slowEnvelope - fastEnvelope) / (slow - fast)
   ];
 }
+
+// Hidden first-order plant family shared by the estimation and tuning challenges.
+function randomFirstOrderPlant() {
+  return { tau: 0.6 + 1.2 * Math.random(), k: 0.8 + 0.8 * Math.random() };
+}

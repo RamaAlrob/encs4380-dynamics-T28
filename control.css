@@ -1,0 +1,182 @@
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  background: #f2f5f4;
+  color: #183a32;
+  font:
+    16px/1.5 system-ui,
+    sans-serif;
+}
+header {
+  background: #163e36;
+  color: white;
+}
+main,
+header div {
+  max-width: 1180px;
+  margin: auto;
+  padding: 22px;
+}
+header div,
+nav,
+#metrics {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+header div {
+  justify-content: space-between;
+}
+header a {
+  color: white;
+}
+header span,
+small {
+  font-size: 0.82rem;
+}
+h1 {
+  font-size: clamp(2.4rem, 6vw, 4rem);
+  letter-spacing: -0.06em;
+  margin: 12px 0;
+}
+h2 {
+  margin: 28px 0 0;
+}
+h3 {
+  margin: 0 0 12px;
+}
+nav a,
+button {
+  padding: 8px 12px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 650;
+}
+nav a {
+  background: #e1e9e5;
+  color: #183a32;
+}
+nav a[aria-current],
+button {
+  background: #16604e;
+  color: white;
+}
+button {
+  border: 0;
+  cursor: pointer;
+  margin: 6px 0;
+}
+.grid {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) minmax(0, 2fr);
+  gap: 16px;
+}
+section {
+  background: white;
+  border: 1px solid #d5dfda;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
+  min-width: 0;
+}
+label {
+  display: block;
+  font-weight: 550;
+  margin-top: 10px;
+}
+input,
+select,
+textarea {
+  display: block;
+  width: 100%;
+  font: inherit;
+  accent-color: #16604e;
+}
+input:not([type="range"]),
+select,
+textarea {
+  padding: 7px;
+  border: 1px solid #a4b8af;
+  border-radius: 5px;
+}
+input[type="checkbox"] {
+  width: auto;
+  display: inline;
+}
+output {
+  float: right;
+  font-variant-numeric: tabular-nums;
+}
+canvas {
+  display: block;
+  width: 100%;
+  height: 190px;
+}
+#effort {
+  height: 145px;
+}
+.legend {
+  font-size: 0.8rem;
+  color: #12654f;
+}
+.legend b {
+  color: #696879;
+}
+.legend em {
+  color: #b35115;
+  font-style: normal;
+}
+#diagram {
+  padding: 10px;
+  background: #eef4f0;
+  font-size: 0.9rem;
+}
+#metrics div {
+  min-width: 130px;
+  flex: 1;
+}
+#metrics strong {
+  display: block;
+  font-size: 1.35rem;
+}
+pre {
+  overflow: auto;
+  background: #102e29;
+  color: #ebfaf3;
+  padding: 14px;
+}
+small {
+  display: block;
+  margin-top: 10px;
+}
+form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+a:focus-visible,
+button:focus-visible {
+  outline: 3px solid #d08b31;
+}
+@media (max-width: 720px) {
+  .grid,
+  form {
+    grid-template-columns: 1fr;
+  }
+  main,
+  header div {
+    padding: 14px;
+  }
+  section {
+    padding: 14px;
+  }
+  nav {
+    gap: 5px;
+  }
+  nav a {
+    font-size: 0.83rem;
+  }
+}

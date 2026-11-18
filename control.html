@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+  <meta charset="utf-8" /><meta
+    name="viewport"
+    content="width=device-width,initial-scale=1"
+  /><title>Control lab · Team 28</title>
+  <link rel="stylesheet" href="control.css" />
+  <header>
+    <div>
+      <a href="index.html">← Dynamics toolkit</a
+      ><span>ENCS4380 &nbsp; / &nbsp; TEAM 28</span>
+    </div>
+  </header>
+  <main>
+    <h1>Control lab</h1>
+    <nav aria-label="Experiments">
+      <a href="#p1">P1 · Playground</a><a href="#p2">P2 · Slow sensor</a
+      ><a href="#p3">P3 · Digital PID</a><a href="#p4">P4 · Tuning</a
+      ><a href="#motor">My system</a>
+    </nav>
+    <h2 id="title"></h2>
+    <p id="intro"></p>
+    <section id="calibration" hidden>
+      <h3>Identify the drive motor</h3>
+      <p>
+        Start at rest. Apply a constant PWM step, average the final encoder
+        speed, then find the elapsed time to reach 63.2% of that speed. K =
+        final RPM / PWM step and τ = elapsed time.
+      </p>
+      <form id="fit">
+        <label
+          >PWM step (%)
+          <input name="pwm" type="number" min="1" max="100" required /></label
+        ><label
+          >Final speed (RPM)
+          <input
+            name="rpm"
+            type="number"
+            min="1"
+            max="10000"
+            step="any"
+            required /></label
+        ><label
+          >63.2% time (s)
+          <input
+            name="tau"
+            type="number"
+            min=".02"
+            max="10"
+            step="any"
+            required /></label
+        ><label
+          >Measurement source
+          <input
+            name="source"
+            required
+            placeholder="Encoder log and test date" /></label
+        ><button>Apply measurement</button>
+      </form>
+      <p id="source"></p>
+    </section>
+    <div class="grid">
+      <section>
+        <h3>Loop settings</h3>
+        <div id="controls"></div>
+      </section>
+      <section>
+        <h3>Closed-loop response</h3>
+        <p id="diagram"></p>
+        <div class="legend">
+          ● True output &nbsp; <b>┄ Setpoint</b>
+          <em id="sensorLegend">● Sensor</em>
+        </div>
+        <canvas
+          id="response"
+          aria-label="Output and setpoint against time"
+        ></canvas>
+        <h3>Control effort</h3>
+        <div class="legend">● Command u &nbsp; <b>┄ Actuator limits</b></div>
+        <canvas
+          id="effort"
+          aria-label="Control signal and actuator limits against time"
+        ></canvas>
+      </section>
+    </div>
+    <section>
+      <h3>Performance</h3>
+      <div id="metrics"></div>
+      <small id="definition"></small>
+      <p id="score"></p>
+    </section>
+    <section>
+      <h3>Predict, then check</h3>
+      <label id="question" for="prediction"></label
+      ><textarea
+        id="prediction"
+        rows="2"
+        placeholder="Write your prediction"
+      ></textarea
+      ><button id="check">Check prediction</button>
+      <p id="feedback" aria-live="polite"></p>
+    </section>
+    <section id="validation" hidden>
+      <h3>Reference checks</h3>
+      <div id="checks"></div>
+    </section>
+    <section id="firmware" hidden>
+      <h3>Arduino speed loop</h3>
+      <p>
+        Example Uno wiring uses encoder A on D2, encoder B on D4, direction on
+        D7 and PWM on D9. Set the encoder counts per output-shaft revolution for
+        rising edges of A, and verify the direction polarity. Speed is in RPM
+        and command is in percent.
+      </p>
+      <button id="copy">Copy code</button>
+      <pre id="code"></pre>
+    </section>
+  </main>
+  <script src="sensor-response.js"></script>
+  <script src="pid-model.js"></script>
+  <script src="pid-ui.js"></script>
+</html>
