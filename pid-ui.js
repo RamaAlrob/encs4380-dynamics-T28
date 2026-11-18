@@ -508,7 +508,9 @@ el("copy").onclick = async () => {
       : "Code selected · copy manually";
   }
 };
-window.addEventListener("hashchange", enter);
+window.addEventListener("hashchange", () => {
+  if (location.hash.slice(1) !== mode) enter();
+});
 window.addEventListener("resize", () => {
   if (result) charts();
 });
