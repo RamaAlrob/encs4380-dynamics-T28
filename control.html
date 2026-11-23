@@ -108,9 +108,10 @@
       <h3>Arduino speed loop</h3>
       <p>
         Example Uno wiring uses encoder A on D2, encoder B on D4, direction on
-        D7 and PWM on D9. Set the encoder counts per output-shaft revolution for
-        rising edges of A, and verify the direction polarity. Speed is in RPM
-        and command is in percent.
+        D7 and PWM on D9. The encoder scale is configured to 700 rising edges
+        of A per output-shaft revolution for the 100:1 12GA-N20 gearmotor.
+        With 34 mm wheels this is approximately 6.55 counts/mm.
+        Verify the direction polarity. Speed is in RPM and command is in percent.
       </p>
       <button id="copy">Copy code</button>
       <pre id="code"></pre>

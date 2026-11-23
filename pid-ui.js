@@ -372,8 +372,9 @@ function update() {
   charts();
 }
 function arduino(s) {
-  return `// Uno speed control. Set this to the measured count for your gearbox.
-const float countsPerRev = 360.0; // example, rising edges on encoder A
+  return `// Uno speed control for the 6 V, 100:1 12GA-N20 gearmotor.
+// Encoder scale: 7 pulses per motor revolution * 100 gearbox ratio.
+const float countsPerRev = 700.0; // rising edges on encoder A per output revolution
 const byte encA = 2, encB = 4, dirPin = 7, pwmPin = 9;
 const float kp = ${s.kp}, ki = ${s.ki}, kd = ${s.kd};
 const float targetRPM = ${s.ref}, low = ${s.low}, high = ${s.high};
