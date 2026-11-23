@@ -33,14 +33,14 @@ AI tools assist with explanations, coding, and review.
 
 ## Homework 2 · Control lab
 
-Open the [live Control lab](https://ramaalrob.github.io/encs4380-dynamics-T28/control.html) or select Control from the landing page. The lab runs locally in the browser. Homework 2 module ownership is awaiting team confirmation.
+Open the [live Control lab](https://ramaalrob.github.io/encs4380-dynamics-T28/control.html) or select Control from the landing page. The lab runs locally in the browser.
 
 | Module | Experiment | Owner |
 | --- | --- | --- |
-| [P1 · PID playground](control.html#p1) | Start with Kp = 9. Compare P, PI and PID, switch plant order and inspect the three reference checks. | Unassigned |
-| [P2 · Slow sensor](control.html#p2) | Increase sensor τ from 0.02 s to 2 s. Compare the measured and true peaks and observe the oscillations. | Unassigned |
-| [P3 · Digital PID](control.html#p3) | Compare short and long sample intervals, saturation and conditional integration. Copy the generated Arduino loop. | Unassigned |
-| [P4 · Tuning challenge](control.html#p4) | Draw a hidden plant from Module 4’s first-order family and tune the gains to pass all three conditions. | Unassigned |
+| [P1 · PID playground](control.html#p1) | Start with Kp = 9. Compare P, PI and PID, switch plant order and inspect the three reference checks. | Juman (@Juman2005) implemented the module, with contributions from Rama (@RamaAlrob) and Mariam (@1231974-code). |
+| [P2 · Slow sensor](control.html#p2) | Increase sensor τ from 0.02 s to 2 s. Compare the measured and true peaks and observe the oscillations. | Juman (@Juman2005) implemented the module, with contributions from Rama (@RamaAlrob) and Mariam (@1231974-code). |
+| [P3 · Digital PID](control.html#p3) | Compare short and long sample intervals, saturation and conditional integration. Copy the generated Arduino loop. | Juman (@Juman2005) implemented the module, with contributions from Rama (@RamaAlrob) and Mariam (@1231974-code). |
+| [P4 · Tuning challenge](control.html#p4) | Draw a hidden plant from Module 4’s first-order family and tune the gains to pass all three conditions. | Juman (@Juman2005) implemented the module, with contributions from Rama (@RamaAlrob) and Mariam (@1231974-code). |
 
 [My system](control.html#motor) starts with an illustrative drive motor, K = 1 RPM per percent PWM and τ = 1 s. Its target is 40 RPM. For PI control the characteristic polynomial is τs² + (1 + K Kp)s + K Ki. Setting Kp = 1/K and Ki = 1/(0.49 τ K) gives a nominal continuous damping ratio of 0.70. The plot tests this design with a sampled controller and forward-only PWM limits. The motor form accepts measured values and their source, stores them in the current browser and makes them available in P1–P3. The encoder scale and example pinout in the sketch need to match the actual hardware.
 
